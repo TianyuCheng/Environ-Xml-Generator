@@ -93,27 +93,116 @@ def generate_events(reader):
         generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
 
     print prettify(root)
-    file_handle = file("xmls/probabilities.xml", "w")
+    file_handle = file("xmls/events.xml", "w")
     file_handle.write(prettify(root))
     file_handle.close()
 
 def generate_upgrades(reader):
     entries = reader.read_worksheet(4)
+    root = Element("upgrades")
+    for entry in entries:
+        node = SubElement(root, "upgrade")
+
+        generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
+        generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
+        generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
+        generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
+        generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
+        generate_simple_tag(node, "category", get_spreadsheet_data(entry, "category", "0"))
+
+        generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
+        generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
+        generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+
+    print prettify(root)
+    file_handle = file("xmls/upgrades.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
 
 def generate_costs(reader):
     entries = reader.read_worksheet(5)
+    root = Element("costs")
+    for entry in entries:
+        node = SubElement(root, "cost")
+
+        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
+        generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
+
+        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+
+    print prettify(root)
+    file_handle = file("xmls/costs.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
 
 def generate_effects(reader):
     entries = reader.read_worksheet(6)
+    root = Element("effects")
+    for entry in entries:
+        node = SubElement(root, "effect")
+
+        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        generate_simple_tag(node, "score", get_spreadsheet_data(entry, "score", "0"))
+        generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
+        generate_simple_tag(node, "area", get_spreadsheet_data(entry, "area", "0"))
+        generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
+
+    print prettify(root)
+    file_handle = file("xmls/effects.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
 
 def generate_probabilities(reader):
     entries = reader.read_worksheet(7)
+    root = Element("probabilities")
+    for entry in entries:
+        node = SubElement(root, "probability")
+
+        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+
+        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "range_condition")
+
+
+    print prettify(root)
+    file_handle = file("xmls/probabilities.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
 
 def generate_range_conditions(reader):
     entries = reader.read_worksheet(8)
+    root = Element("range_conditions")
+    for entry in entries:
+        node = SubElement(root, "range_condition")
+
+        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        generate_simple_tag(node, "score", get_spreadsheet_data(entry, "score", "0"))
+        generate_simple_tag(node, "low", get_spreadsheet_data(entry, "low", "0"))
+        generate_simple_tag(node, "high", get_spreadsheet_data(entry, "high", "0"))
+        generate_simple_tag(node, "multiplier", get_spreadsheet_data(entry, "multiplier", "0"))
+
+    print prettify(root)
+    file_handle = file("xmls/range_conditions.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
 
 def generate_prereq_conditions(reader):
     entries = reader.read_worksheet(9)
+    root = Element("prereq_conditions")
+    for entry in entries:
+        node = SubElement(root, "prereq_cond")
+
+        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        generate_simple_tag(node, "keys", get_spreadsheet_data(entry, "keys", "( )"), {}, process_list_xml, "key")
+        generate_simple_tag(node, "count", get_spreadsheet_data(entry, "low", "0"))
+        generate_simple_tag(node, "satisfied", get_spreadsheet_data(entry, "satisfied", "0"))
+        generate_simple_tag(node, "unsatisfied", get_spreadsheet_data(entry, "unsatisfied", "0"))
+
+    print prettify(root)
+    file_handle = file("xmls/prereq_conditions.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
 
 
 # ================ helper methods ====================
