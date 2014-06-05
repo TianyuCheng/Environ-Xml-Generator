@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<probabilities>
+    
+    <probability>
+        <id>FX01</id>
+        <range_conditions>
+            <range_condition>R01</range_condition>    
+            <range_condition>R02</range_condition>    
+        <range_conditions>
+        <prereq_conditions>
+            <prereq_condition>PQ01</prereq_condition>    
+            <prereq_condition>PQ02</prereq_condition>    
+        <prereq_conditions>
+    </probability>
+
+</probabilities>

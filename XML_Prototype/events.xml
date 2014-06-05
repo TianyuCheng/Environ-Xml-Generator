@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<events>
+    
+    <event>
+        <key>EV01</key>
+        <title></title>
+        <description>This region has upset the marine ecosystem in this area by catching too many fish. The fish stock of a certain species is getting so llow that it is not able to replenish its numbers. The food web could change resulting in a loss of biodiversity and evetually extinction. Addressing this issue would mean setting a limit on how many fish may be caught and putting restrictions on when people can fish in certain areas, which would cost money over time to enforce. </description>
+        <image></image>
+        <reference>http://en.wikipedia.org/wiki/Overfishing</reference>
+
+        <costs>
+            <cost>C01</cost>
+            <cost>C02</cost>
+        </costs>
+
+        <effects>
+            <effect>E01</effect>
+            <effect>E02</effect>
+        </effects>
+
+        <upgrades>
+            <upgrade>U01</upgrade>
+            <upgrade>U02</upgrade>
+        </upgrades>
+    </event>
+</events>

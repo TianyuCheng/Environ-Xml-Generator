@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+# import keyring manager
+from keyring import get_password, set_password
+
+# import getpass function for password mask
+from getpass import getpass 
+
+# import google api for spreadsheet reading
+import gdata.docs
+import gdata.docs.service
+import gdata.spreadsheet.service
+
+class SpreadsheetReader(object):
+
+    """ A class wrapper for fetching the Google SpreadSheet """
+
+    def __init__(self, username, doc_name):
+        """ @todo: init the account, checking the account username and password. If not exist, asking user for password
+        
+        @username: the username for authentication
+        @doc_name: the document to be read
+        """
+        # setting up the account
+        self.doc_name = doc_name
+        self.username = username
+        self.password= get_password("xml_generator", username)
+
+        self.register_password = False
+
+        # setting up the password if not found
+        if self.password is None:
+            self.password = getpass("Password:")
+            self.register_password = True
+        
+        # login with the account
+        self.__authenticate__()
+
+
+    def __authenticate__(self):
+        """@todo: login with authentication.
+
+        :username: @google account username
+        :password: @google account password
+        :document: @filename on the google drive
+        :returns: @None
+
+        """
+        # Google Docs Login
+        try:
+            gd_client = gdata.spreadsheet.service.SpreadsheetsService()
+            gd_client.email = self.username
+            gd_client.password = self.password
+            gd_client.source = self.doc_name
+            gd_client.ProgrammaticLogin()
+        except BadAuthentication, e:
+            raise   #authentication failure
+
+        # authentication success
+        self.gd_client = gd_client
+
+        # save password if needed
+        if self.register_password:
+            set_password('xml_generator', self.username, self.password)
+
+        # get the spread 
+        feed = gd_client.GetSpreadsheetsFeed()
+        self.spreadsheet_id = feed.entry[0].id.text.rsplit('/', 1)[1]
+        self.feed = self.gd_client.GetWorksheetsFeed(self.spreadsheet_id)
+
+
+    def read_worksheet(self, worksheet_id):
+        """@todo: read the worksheet by id/index
+
+        :worksheet_id: @the index of worksheet in the spreadsheet, 
+                        starting from 0
+        :returns: @entries by row
+
+        """
+        worksheet_id = self.feed.entry[worksheet_id].id.text.rsplit('/', 1)[1]
+        entries = self.gd_client.GetListFeed(self.spreadsheet_id, worksheet_id).entry
+
+        return entries
