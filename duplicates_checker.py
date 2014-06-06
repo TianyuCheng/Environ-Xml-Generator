@@ -7,19 +7,20 @@ sys.path.append(lib_path)
 
 # import utils
 from GoogleReader import SpreadsheetReader
-from Generate_XML import *
+from Generate_XML import menu
+from Check_XML import *
 
-callbacks = [generate_regions, generate_bases, \
-             generate_events, generate_upgrades, generate_costs, \
-             generate_effects, generate_probabilities, generate_range_conditions, \
-             generate_prereq_conditions]
+callbacks = [check_regions, check_bases, \
+             check_events, check_upgrades, check_costs, \
+             check_effects, check_probabilities, check_range_conditions, \
+             check_prereq_conditions]
 
-def generate_all(reader):
+def check_all(reader):
     for index in xrange(len(worksheets) - 1):
         callbacks[index](reader)
 
 if __name__ == '__main__':
-
+    
     # select from the menu first
     worksheet_id = menu()
 
@@ -33,6 +34,6 @@ if __name__ == '__main__':
     reader = SpreadsheetReader(username, "BaseNodeInfo")
 
     if worksheet_id == 0:
-        generate_all(reader)
+        check_all(reader)
     else:
         callbacks[worksheet_id - 1](reader)

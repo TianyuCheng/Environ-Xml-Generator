@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # import regular expression
 import os, re
 

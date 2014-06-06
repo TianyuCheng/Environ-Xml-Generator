@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # import keyring manager
 from keyring import get_password, set_password
 
