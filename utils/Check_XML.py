@@ -14,6 +14,7 @@ def check_duplicates(entries, primary_key, *args):
         current_id = entry.custom[primary_key].text
         if current_id is not None:
             key = stringify(entry, *args)
+            # print "==========", key, "==========="
             if key in entries_dict:
                 print "entry id %s repeats entry id %s : %s" % (current_id, entries_dict[key], key)
             else:
@@ -50,7 +51,7 @@ def check_probabilities(reader):
 def check_range_conditions(reader):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(8)
-    check_duplicates(entries, 'id', 'low', 'high', 'multiplier')
+    check_duplicates(entries, 'id', 'score', 'low', 'high', 'multiplier')
 
 def check_prereq_conditions(reader):
     # fetch the rows of the spreadsheet

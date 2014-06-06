@@ -7,7 +7,7 @@ sys.path.append(lib_path)
 
 # import utils
 from GoogleReader import SpreadsheetReader
-from Generate_XML import menu
+from Generate_XML import *
 from Check_XML import *
 
 callbacks = [check_regions, check_bases, \
