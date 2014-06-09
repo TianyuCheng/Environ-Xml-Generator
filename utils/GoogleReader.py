@@ -49,7 +49,7 @@ class SpreadsheetReader(object):
             gd_client = gdata.spreadsheet.service.SpreadsheetsService()
             gd_client.email = self.username
             gd_client.password = self.password
-            gd_client.source = self.doc_name
+            gd_client.source = 'xml-generator'
             gd_client.ProgrammaticLogin()
         except BadAuthentication, e:
             raise   #authentication failure
@@ -61,11 +61,18 @@ class SpreadsheetReader(object):
         if self.register_password:
             set_password('xml_generator', self.username, self.password)
 
-        # get the spread 
-        feed = gd_client.GetSpreadsheetsFeed()
-        self.spreadsheet_id = feed.entry[0].id.text.rsplit('/', 1)[1]
-        self.feed = self.gd_client.GetWorksheetsFeed(self.spreadsheet_id)
+        # get the spread with exact query
+        q = gdata.spreadsheet.service.DocumentQuery()
+        q['title'] = 'BaseNodeInfo.gsheet'
+        q['title-exact'] = 'true'
 
+        # fetch the data
+        feed = gd_client.GetSpreadsheetsFeed(query=q)
+        if len(feed.entry) == 0:
+            print "The spreadsheet %s has not been found in your Google Drive!" % self.doc_name
+
+        self.spreadsheet_id = feed.entry[0].id.text.rsplit('/',1)[1]
+        self.feed = self.gd_client.GetWorksheetsFeed(self.spreadsheet_id)
 
     def read_worksheet(self, worksheet_id):
         """@todo: read the worksheet by id/index
