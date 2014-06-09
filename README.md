@@ -9,6 +9,12 @@ Usage
 2. python duplicates_checker [gmail account name | OPTIONAL] to check duplicates
 <hr>
 
+Operation Sequences
+-------------------
+1. open Action&amp;EventNode_Details.gsheet (This should be done first if your gmail is logged in)
+2. open BaseNodeInfo.gsheet and login with your gmail (This should be done after Action&amp;EventNode.gsheet to avoid document search problem)
+3. python generator.py | python duplicates_checker.py
+
 Files
 -----
 + duplicates_checker.py     => executable script for xml duplicate checking
