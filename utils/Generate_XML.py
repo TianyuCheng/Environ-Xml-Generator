@@ -6,7 +6,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
 worksheets = ["all", "regions", "bases", "events", \
-              "upgrades", "costs", "effects", "probability", \
+              "upgrades", "costs", "effects", \
               "range_conditions", "prereq_conditions"]
 
 def menu():
@@ -88,7 +88,9 @@ def generate_events(reader):
 
         generate_simple_tag(node, "upgrades", get_spreadsheet_data(entry, "upgrades", "( )"), {}, process_list_xml, "upgrade")
         generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
-        generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+        # generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
 
     print prettify(root)
     file_handle = file("xmls/events.xml", "w")
@@ -110,7 +112,9 @@ def generate_upgrades(reader):
 
         generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
         generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
-        generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+        # generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
 
     print prettify(root)
     file_handle = file("xmls/upgrades.xml", "w")
@@ -189,7 +193,7 @@ def generate_prereq_conditions(reader):
     entries = reader.read_worksheet(9)
     root = Element("prereq_conditions")
     for entry in entries:
-        node = SubElement(root, "prereq_cond")
+        node = SubElement(root, "prereq_condition")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
         generate_simple_tag(node, "keys", get_spreadsheet_data(entry, "keys", "( )"), {}, process_list_xml, "key")

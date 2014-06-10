@@ -11,7 +11,7 @@ from Generate_XML import *
 
 callbacks = [generate_regions, generate_bases, \
              generate_events, generate_upgrades, generate_costs, \
-             generate_effects, generate_probabilities, generate_range_conditions, \
+             generate_effects, generate_range_conditions, \
              generate_prereq_conditions]
 
 def generate_all(reader):
