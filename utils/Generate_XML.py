@@ -62,8 +62,9 @@ def generate_bases(reader):
         generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
         generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
         generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
-        generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
+        generate_simple_tag(node, "prefab_name", get_spreadsheet_data(entry, "prefab_name"))
         generate_simple_tag(node, "model_name", get_spreadsheet_data(entry, "model_name"))
+        generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
 
         generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
         generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
@@ -84,6 +85,8 @@ def generate_events(reader):
         generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
         generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
         generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
+        generate_simple_tag(node, "prefab_name", get_spreadsheet_data(entry, "prefab_name"))
+        generate_simple_tag(node, "model_name", get_spreadsheet_data(entry, "model_name"))
         generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
 
         generate_simple_tag(node, "upgrades", get_spreadsheet_data(entry, "upgrades", "( )"), {}, process_list_xml, "upgrade")
