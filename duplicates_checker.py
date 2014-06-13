@@ -10,7 +10,7 @@ from GoogleReader import SpreadsheetReader
 from Generate_XML import *
 from Check_XML import *
 
-def check_all(reader):
+def check_all(reader, options):
     for key, value in options.iteritems():
         eval("check_" + key.lower() + "(reader, \"" + value + "\")")
 
@@ -35,6 +35,6 @@ if __name__ == '__main__':
     print "-----------------------------------------------------"
 
     if isinstance(option, dict):       # generate all xmls
-        generate_all(reader, option)
+        check_all(reader, option)
     else:                               # generate single xml
         eval("check_" + option[0].lower() + "(reader, option[1])")
