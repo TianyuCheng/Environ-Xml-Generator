@@ -1,6 +1,8 @@
 # import regular expression
 import os, re
 
+duplicates = {}
+
 def stringify(entry, *args):
     ret = [entry.custom[arg].text for arg in args]
     return str(ret)
@@ -17,8 +19,11 @@ def check_duplicates(entries, primary_key, *args):
             # print "==========", key, "==========="
             if key in entries_dict:
                 print "entry id %s repeats entry id %s : %s" % (current_id, entries_dict[key], key)
+                global duplicates   
+                duplicates[current_id] = entries_dict[key]
             else:
                 entries_dict[key] = current_id
+    return entries_dict
 
 def check_syntax(reader, feed):
     print "No need to check duplicates in syntax"
@@ -53,7 +58,7 @@ def check_probabilities(reader, feed):
 def check_ranges(reader, feed):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(feed)
-    check_duplicates(entries, 'id', 'score', 'low', 'high', 'multiplier')
+    ret = check_duplicates(entries, 'id', 'score', 'low', 'high', 'multiplier')
 
 def check_prereqs(reader, feed):
     # fetch the rows of the spreadsheet

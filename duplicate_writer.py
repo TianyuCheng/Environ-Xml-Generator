@@ -23,18 +23,6 @@ if __name__ == '__main__':
         username = "skysource.tony@gmail.com"
 
     # set up GoogleSpreadSheetReader
-    reader = SpreadsheetReader(username, "BaseNodeInfo.gsheet")
+    reader = SpreadsheetReader(username, "XmlGameData.gsheet")
     feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
     option = reader.menu()
-
-    # mkdir if directory not found
-    if not os.path.exists("./xmls"):
-        print "xmls directory not found; try generating iit"
-        os.makedirs("./xmls")
-
-    print "-----------------------------------------------------"
-
-    if isinstance(option, dict):       # generate all xmls
-        check_all(reader, option)
-    else:                               # generate single xml
-        eval("check_" + option[0].lower() + "(reader, option[1])")
