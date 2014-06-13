@@ -1,9 +1,19 @@
 # import regular expression
 import os, re
 
+from Check_XML import *
+
 # import XML api
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
+
+def duplicate_check(value):
+    global duplicates
+    return value if value not in duplicates else duplicates[value]
+
+def duplicate_node(entry, tag):
+    key = get_spreadsheet_data(entry, tag)
+    return key != duplicate_check(key)
 
 # ================= xml generators ======================
 
@@ -14,6 +24,9 @@ def generate_regions(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("regions")
     for entry in entries:
+        if (duplicate_node(entry, "id")):
+            continue
+
         node = SubElement(root, "region")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
@@ -35,6 +48,9 @@ def generate_bases(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("bases")
     for entry in entries:
+        if (duplicate_node(entry, "key")):
+            continue
+
         node = SubElement(root, "base")
 
         generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
@@ -58,6 +74,9 @@ def generate_events(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("events")
     for entry in entries:
+        if (duplicate_node(entry, "key")):
+            continue
+
         node = SubElement(root, "event")
 
         generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
@@ -83,6 +102,9 @@ def generate_upgrades(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("upgrades")
     for entry in entries:
+        if (duplicate_node(entry, "key")):
+            continue
+
         node = SubElement(root, "upgrade")
 
         generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
@@ -107,6 +129,9 @@ def generate_costs(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("costs")
     for entry in entries:
+        if (duplicate_node(entry, "id")):
+            continue
+
         node = SubElement(root, "cost")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
@@ -124,6 +149,9 @@ def generate_effects(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("effects")
     for entry in entries:
+        if (duplicate_node(entry, "id")):
+            continue
+
         node = SubElement(root, "effect")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
@@ -141,6 +169,9 @@ def generate_probabilities(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("probabilities")
     for entry in entries:
+        if (duplicate_node(entry, "id")):
+            continue
+
         node = SubElement(root, "probability")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
@@ -157,6 +188,9 @@ def generate_ranges(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("range_conditions")
     for entry in entries:
+        if (duplicate_node(entry, "id")):
+            continue
+
         node = SubElement(root, "range_condition")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
@@ -174,6 +208,9 @@ def generate_prereqs(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("prereq_conditions")
     for entry in entries:
+        if (duplicate_node(entry, "id")):
+            continue
+
         node = SubElement(root, "prereq_condition")
 
         generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
@@ -215,7 +252,7 @@ def generate_simple_tag(parent, tag, value, attrs = {}, callback = None, child_t
     if callback is not None:
         callback(node, value, child_tag, *args)
     else:
-        node.text = value
+        node.text = duplicate_check(value)
 
     # process the attributes
     for key, value in attrs.iteritems():

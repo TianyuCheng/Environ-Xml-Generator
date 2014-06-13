@@ -7,7 +7,6 @@ sys.path.append(lib_path)
 
 # import utils
 from GoogleReader import SpreadsheetReader
-from Generate_XML import *
 from Check_XML import *
 
 def check_all(reader, options):

@@ -7,11 +7,16 @@ sys.path.append(lib_path)
 
 # import utils
 from GoogleReader import SpreadsheetReader
+from Check_XML import *
 from Generate_XML import *
 
 def generate_all(reader, options):
     for key, value in options.iteritems():
         eval("generate_" + key.lower() + "(reader, \"" + value + "\")")
+
+def check_all(reader, options):
+    for key, value in options.iteritems():
+        eval("check_" + key.lower() + "(reader, \"" + value + "\")")
 
 if __name__ == '__main__':
 
@@ -33,7 +38,10 @@ if __name__ == '__main__':
 
     print "-----------------------------------------------------"
 
+
     if isinstance(option, dict):       # generate all xmls
+        check_all(reader, option)
         generate_all(reader, option)
     else:                               # generate single xml
         eval("generate_" + option[0].lower() + "(reader, option[1])")
+        eval("check_" + option[0].lower() + "(reader, option[1])")
