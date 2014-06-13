@@ -10,19 +10,11 @@ from GoogleReader import SpreadsheetReader
 from Generate_XML import *
 from Check_XML import *
 
-callbacks = [check_regions, check_bases, \
-             check_events, check_upgrades, check_costs, \
-             check_effects, check_probabilities, check_range_conditions, \
-             check_prereq_conditions]
-
 def check_all(reader):
-    for index in xrange(len(worksheets) - 1):
-        callbacks[index](reader)
+    for key, value in options.iteritems():
+        eval("check_" + key.lower() + "(reader, \"" + value + "\")")
 
 if __name__ == '__main__':
-    
-    # select from the menu first
-    worksheet_id = menu()
 
     # set up username or use the default account
     if len(sys.argv) >= 2:
@@ -32,8 +24,17 @@ if __name__ == '__main__':
 
     # set up GoogleSpreadSheetReader
     reader = SpreadsheetReader(username, "BaseNodeInfo")
+    feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
+    option = reader.menu()
 
-    if worksheet_id == 0:
-        check_all(reader)
-    else:
-        callbacks[worksheet_id - 1](reader)
+    # mkdir if directory not found
+    if not os.path.exists("./xmls"):
+        print "xmls directory not found; try generating iit"
+        os.makedirs("./xmls")
+
+    print "-----------------------------------------------------"
+
+    if isinstance(option, dict):       # generate all xmls
+        generate_all(reader, option)
+    else:                               # generate single xml
+        eval("check_" + option[0].lower() + "(reader, option[1])")

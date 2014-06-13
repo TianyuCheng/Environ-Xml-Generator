@@ -74,15 +74,40 @@ class SpreadsheetReader(object):
         self.spreadsheet_id = feed.entry[0].id.text.rsplit('/',1)[1]
         self.feed = self.gd_client.GetWorksheetsFeed(self.spreadsheet_id)
 
-    def read_worksheet(self, worksheet_id):
+    def get_worsksheet_feeds(self, callback = lambda s : s):
+        # store as a list
+        self.worksheets = [(callback(worksheet.title.text), worksheet.id.text.rsplit('/', 1)[1]) for worksheet in self.feed.entry]
+
+        # store as a dictionary
+        self.worksheets_dict = dict(self.worksheets)
+        return self.worksheets_dict
+
+    def read_worksheet(self, worksheet_feed):
         """@todo: read the worksheet by id/index
 
         :worksheet_id: @the index of worksheet in the spreadsheet, 
                         starting from 0
-        :returns: @entries by row
-
         """
-        worksheet_id = self.feed.entry[worksheet_id].id.text.rsplit('/', 1)[1]
-        entries = self.gd_client.GetListFeed(self.spreadsheet_id, worksheet_id).entry
+        return self.gd_client.GetListFeed(self.spreadsheet_id, worksheet_feed).entry
 
-        return entries
+    def menu(self):
+        """@todo: menu for options
+            :returns: @(title, feed) of worksheet
+                      @dictionary of feeds if option 0 is selected
+        """
+        print "0) All"  # add default all options
+        for index, worksheet in enumerate(self.worksheets):
+            print "%d) %s" % (index + 1, worksheet[0])
+
+        print "-----------------------------------------------------"
+        print "Input the worksheet id that you want to work on"
+        option = input("Input: ")
+
+        if option > len(self.worksheets):
+            print "Index Out of Bounds! Abort!"
+            raise # failure to choose correct index
+
+        if option == 0:
+            return self.worksheets_dict
+
+        return self.worksheets[option - 1]

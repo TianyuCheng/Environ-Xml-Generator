@@ -5,34 +5,13 @@ import os, re
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
-worksheets = ["all", "regions", "bases", "events", \
-              "upgrades", "costs", "effects", \
-              "range_conditions", "prereq_conditions"]
-
-def menu():
-    """@todo: menu for options
-    :returns: @id of worksheet
-    """
-    for index, worksheet in enumerate(worksheets):
-        print "%d) %s" % (index, worksheet)
-
-    print "-----------------------------------------------------"
-    print "Input the worksheet id that you want to work on"
-    option = input("Input: ")
-
-    # mkdir if directory not found
-    if not os.path.exists("./xmls"):
-        print "xmls directory not found; try generating iit"
-        os.makedirs("./xmls")
-
-    print "you are trying to generate", worksheets[option], "xml"
-    print "-----------------------------------------------------"
-    return option
-
 # ================= xml generators ======================
 
-def generate_regions(reader):
-    entries = reader.read_worksheet(1)
+def generate_syntax(reader, feed):
+    print "there's no need to generate syntax xml"
+
+def generate_regions(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("regions")
     for entry in entries:
         node = SubElement(root, "region")
@@ -47,13 +26,13 @@ def generate_regions(reader):
         generate_simple_tag(node, "bases", get_spreadsheet_data(entry, "bases", "( )"), {}, process_dict_xml, "base", "active", "x", "y")
         generate_simple_tag(node, "events", get_spreadsheet_data(entry, "events", "( )"), {}, process_dict_xml, "event", "x", "y")
 
-    # print prettify(root)
+    print prettify(root)
     file_handle = file("xmls/regions.xml", "w")
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_bases(reader):
-    entries = reader.read_worksheet(2)
+def generate_bases(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("bases")
     for entry in entries:
         node = SubElement(root, "base")
@@ -75,8 +54,8 @@ def generate_bases(reader):
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_events(reader):
-    entries = reader.read_worksheet(3)
+def generate_events(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("events")
     for entry in entries:
         node = SubElement(root, "event")
@@ -100,8 +79,8 @@ def generate_events(reader):
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_upgrades(reader):
-    entries = reader.read_worksheet(4)
+def generate_upgrades(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("upgrades")
     for entry in entries:
         node = SubElement(root, "upgrade")
@@ -124,8 +103,8 @@ def generate_upgrades(reader):
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_costs(reader):
-    entries = reader.read_worksheet(5)
+def generate_costs(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("costs")
     for entry in entries:
         node = SubElement(root, "cost")
@@ -141,8 +120,8 @@ def generate_costs(reader):
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_effects(reader):
-    entries = reader.read_worksheet(6)
+def generate_effects(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("effects")
     for entry in entries:
         node = SubElement(root, "effect")
@@ -158,8 +137,8 @@ def generate_effects(reader):
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_probabilities(reader):
-    entries = reader.read_worksheet(7)
+def generate_probabilities(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("probabilities")
     for entry in entries:
         node = SubElement(root, "probability")
@@ -169,14 +148,13 @@ def generate_probabilities(reader):
         generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
         generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "range_condition")
 
-
     print prettify(root)
     file_handle = file("xmls/probabilities.xml", "w")
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_range_conditions(reader):
-    entries = reader.read_worksheet(8)
+def generate_ranges(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("range_conditions")
     for entry in entries:
         node = SubElement(root, "range_condition")
@@ -192,8 +170,8 @@ def generate_range_conditions(reader):
     file_handle.write(prettify(root))
     file_handle.close()
 
-def generate_prereq_conditions(reader):
-    entries = reader.read_worksheet(9)
+def generate_prereqs(reader, feed):
+    entries = reader.read_worksheet(feed)
     root = Element("prereq_conditions")
     for entry in entries:
         node = SubElement(root, "prereq_condition")
