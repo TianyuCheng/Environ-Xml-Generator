@@ -139,6 +139,7 @@ def generate_costs(reader, feed):
         generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
 
         generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
 
     print prettify(root)
     file_handle = file("xmls/costs.xml", "w")
@@ -166,23 +167,24 @@ def generate_effects(reader, feed):
     file_handle.close()
 
 def generate_probabilities(reader, feed):
-    entries = reader.read_worksheet(feed)
-    root = Element("probabilities")
-    for entry in entries:
-        if (duplicate_node(entry, "id")):
-            continue
-
-        node = SubElement(root, "probability")
-
-        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
-
-        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
-        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "range_condition")
-
-    print prettify(root)
-    file_handle = file("xmls/probabilities.xml", "w")
-    file_handle.write(prettify(root))
-    file_handle.close()
+    print "No need to generate probabilities now"
+    # entries = reader.read_worksheet(feed)
+    # root = Element("probabilities")
+    # for entry in entries:
+    #     if (duplicate_node(entry, "id")):
+    #         continue
+    #
+    #     node = SubElement(root, "probability")
+    #
+    #     generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+    #
+    #     generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+    #     generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "range_condition")
+    #
+    # print prettify(root)
+    # file_handle = file("xmls/probabilities.xml", "w")
+    # file_handle.write(prettify(root))
+    # file_handle.close()
 
 def generate_ranges(reader, feed):
     entries = reader.read_worksheet(feed)
