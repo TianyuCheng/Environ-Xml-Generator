@@ -1,7 +1,9 @@
 # import regular expression
 import os, re
 
+from XmlGenerator import generate_xml, fill_with_default
 from Check_XML import *
+from formats import *
 
 # import XML api
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
@@ -23,21 +25,22 @@ def generate_syntax(reader, feed):
 def generate_regions(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("regions")
+    generate_region = generate_xml('region', regions_format)
     for entry in entries:
         if (duplicate_node(entry, "id")):
             continue
-
-        node = SubElement(root, "region")
-
-        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
-        generate_simple_tag(node, "name", get_spreadsheet_data(entry, "name"))
-        generate_simple_tag(node, "initials", get_spreadsheet_data(entry, "initials"))
-        generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
-        generate_simple_tag(node, "environ", get_spreadsheet_data(entry, "environ"))
-        generate_simple_tag(node, "economy", get_spreadsheet_data(entry, "economy"))
-
-        generate_simple_tag(node, "bases", get_spreadsheet_data(entry, "bases", "( )"), {}, process_dict_xml, "base", "active", "x", "y")
-        generate_simple_tag(node, "events", get_spreadsheet_data(entry, "events", "( )"), {}, process_dict_xml, "event", "x", "y")
+        generate_region(root, fill_with_default(entry))
+        # node = SubElement(root, "region")
+        #
+        # generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        # generate_simple_tag(node, "name", get_spreadsheet_data(entry, "name"))
+        # generate_simple_tag(node, "initials", get_spreadsheet_data(entry, "initials"))
+        # generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
+        # generate_simple_tag(node, "environ", get_spreadsheet_data(entry, "environ"))
+        # generate_simple_tag(node, "economy", get_spreadsheet_data(entry, "economy"))
+        #
+        # generate_simple_tag(node, "bases", get_spreadsheet_data(entry, "bases", "( )"), {}, process_dict_xml, "base", "active", "x", "y")
+        # generate_simple_tag(node, "events", get_spreadsheet_data(entry, "events", "( )"), {}, process_dict_xml, "event", "x", "y")
 
     print prettify(root)
     file_handle = file("xmls/regions.xml", "w")

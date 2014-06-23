@@ -27,7 +27,8 @@ if __name__ == '__main__':
         username = "skysource.tony@gmail.com"
 
     # set up GoogleSpreadSheetReader
-    reader = SpreadsheetReader(username, "BaseNodeInfo.gsheet")
+    # reader = SpreadsheetReader(username, "BaseNodeInfo.gsheet")
+    reader = SpreadsheetReader(username, "BaseNodeInfo2.gsheet")
     feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
     option = reader.menu()
 

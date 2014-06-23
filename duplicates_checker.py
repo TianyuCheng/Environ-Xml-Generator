@@ -37,3 +37,4 @@ if __name__ == '__main__':
         check_all(reader, option)
     else:                               # generate single xml
         eval("check_" + option[0].lower() + "(reader, option[1])")
+        "hello"
