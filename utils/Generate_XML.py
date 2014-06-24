@@ -25,7 +25,7 @@ def generate_syntax(reader, feed):
 def generate_regions(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("regions")
-    generate_region = generate_xml('region', regions_format)
+    generate_region = generate_xml('region', region_format)
     for entry in entries:
         if (duplicate_node(entry, "id")):
             continue
@@ -50,23 +50,26 @@ def generate_regions(reader, feed):
 def generate_bases(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("bases")
+    generate_base = generate_xml('base', base_format)
     for entry in entries:
         if (duplicate_node(entry, "key")):
             continue
+        generate_base(root, fill_with_default(entry))
+        # node = SubElement(root, "region")
 
-        node = SubElement(root, "base")
-
-        generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
-        generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
-        generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
-        generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
-        generate_simple_tag(node, "prefab_name", get_spreadsheet_data(entry, "prefab_name"))
-        generate_simple_tag(node, "model_name", get_spreadsheet_data(entry, "model_name"))
-        generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
-
-        generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
-        generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
-        generate_simple_tag(node, "upgrades", get_spreadsheet_data(entry, "upgrades", "( )"), {}, process_list_xml, "upgrade")
+        # node = SubElement(root, "base")
+        #
+        # generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
+        # generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
+        # generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
+        # generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
+        # generate_simple_tag(node, "prefab_name", get_spreadsheet_data(entry, "prefab_name"))
+        # generate_simple_tag(node, "model_name", get_spreadsheet_data(entry, "model_name"))
+        # generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
+        #
+        # generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
+        # generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
+        # generate_simple_tag(node, "upgrades", get_spreadsheet_data(entry, "upgrades", "( )"), {}, process_list_xml, "upgrade")
 
     print prettify(root)
     file_handle = file("xmls/bases.xml", "w")
@@ -76,25 +79,27 @@ def generate_bases(reader, feed):
 def generate_events(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("events")
+    generate_event = generate_xml('event', event_format)
     for entry in entries:
         if (duplicate_node(entry, "key")):
             continue
+        generate_event(root, fill_with_default(entry))
 
-        node = SubElement(root, "event")
-
-        generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
-        generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
-        generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
-        generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
-        generate_simple_tag(node, "prefab_name", get_spreadsheet_data(entry, "prefab_name"))
-        generate_simple_tag(node, "model_name", get_spreadsheet_data(entry, "model_name"))
-        generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
-
-        generate_simple_tag(node, "upgrades", get_spreadsheet_data(entry, "upgrades", "( )"), {}, process_list_xml, "upgrade")
-        generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
-        # generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
-        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
-        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
+        # node = SubElement(root, "event")
+        #
+        # generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
+        # generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
+        # generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
+        # generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
+        # generate_simple_tag(node, "prefab_name", get_spreadsheet_data(entry, "prefab_name"))
+        # generate_simple_tag(node, "model_name", get_spreadsheet_data(entry, "model_name"))
+        # generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
+        #
+        # generate_simple_tag(node, "upgrades", get_spreadsheet_data(entry, "upgrades", "( )"), {}, process_list_xml, "upgrade")
+        # generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
+        # # generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+        # generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        # generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
 
     print prettify(root)
     file_handle = file("xmls/events.xml", "w")
@@ -104,45 +109,71 @@ def generate_events(reader, feed):
 def generate_upgrades(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("upgrades")
+    generate_upgrade = generate_xml('upgrade', upgrade_format)
     for entry in entries:
         if (duplicate_node(entry, "key")):
             continue
-
-        node = SubElement(root, "upgrade")
-
-        generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
-        generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
-        generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
-        generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
-        generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
-        generate_simple_tag(node, "category", get_spreadsheet_data(entry, "category", "0"))
-
-        generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
-        generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
-        # generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
-        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
-        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
+        generate_upgrade(root, fill_with_default(entry))
+        # node = SubElement(root, "upgrade")
+        #
+        # generate_simple_tag(node, "key", get_spreadsheet_data(entry, "key"))
+        # generate_simple_tag(node, "title", get_spreadsheet_data(entry, "title"))
+        # generate_simple_tag(node, "description", get_spreadsheet_data(entry, "description"))
+        # generate_simple_tag(node, "image", get_spreadsheet_data(entry, "image"))
+        # generate_simple_tag(node, "reference", get_spreadsheet_data(entry, "reference"))
+        # generate_simple_tag(node, "category", get_spreadsheet_data(entry, "category", "0"))
+        #
+        # generate_simple_tag(node, "costs", get_spreadsheet_data(entry, "costs", "( )"), {}, process_list_xml, "cost")
+        # generate_simple_tag(node, "effects", get_spreadsheet_data(entry, "effects", "( )"), {}, process_list_xml, "effect")
+        # # generate_simple_tag(node, "probabilities", get_spreadsheet_data(entry, "probabilities", "( )"), {}, process_list_xml, "probability")
+        # generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        # generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
 
     print prettify(root)
     file_handle = file("xmls/upgrades.xml", "w")
     file_handle.write(prettify(root))
     file_handle.close()
 
+def generate_tags(reader, feed):
+    entries = reader.read_worksheet(feed)
+    root = Element("tags")
+    generate_cost = generate_xml('tag', tag_format)
+    for entry in entries:
+        if (duplicate_node(entry, "key")):
+            continue
+        generate_cost(root, fill_with_default(entry))
+
+        # node = SubElement(root, "cost")
+        #
+        # generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        # generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
+        # generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
+        #
+        # generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        # generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
+
+    print prettify(root)
+    file_handle = file("xmls/tags.xml", "w")
+    file_handle.write(prettify(root))
+    file_handle.close()
+
 def generate_costs(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("costs")
+    generate_cost = generate_xml('cost', cost_format)
     for entry in entries:
-        if (duplicate_node(entry, "id")):
+        if (duplicate_node(entry, "key")):
             continue
+        generate_cost(root, fill_with_default(entry))
 
-        node = SubElement(root, "cost")
-
-        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
-        generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
-        generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
-
-        generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
-        generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
+        # node = SubElement(root, "cost")
+        #
+        # generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        # generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
+        # generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
+        #
+        # generate_simple_tag(node, "range_conditions", get_spreadsheet_data(entry, "rangeconditions", "( )"), {}, process_list_xml, "range_condition")
+        # generate_simple_tag(node, "prereq_conditions", get_spreadsheet_data(entry, "prereqconditions", "( )"), {}, process_list_xml, "prereq_condition")
 
     print prettify(root)
     file_handle = file("xmls/costs.xml", "w")
@@ -152,17 +183,19 @@ def generate_costs(reader, feed):
 def generate_effects(reader, feed):
     entries = reader.read_worksheet(feed)
     root = Element("effects")
+    generate_effect = generate_xml('effect', effect_format)
     for entry in entries:
-        if (duplicate_node(entry, "id")):
+        if (duplicate_node(entry, "key")):
             continue
+        generate_effect(root, fill_with_default(entry))
 
-        node = SubElement(root, "effect")
-
-        generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
-        generate_simple_tag(node, "score", get_spreadsheet_data(entry, "score", "0"))
-        generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
-        generate_simple_tag(node, "area", get_spreadsheet_data(entry, "area", "0"))
-        generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
+        # node = SubElement(root, "effect")
+        #
+        # generate_simple_tag(node, "id", get_spreadsheet_data(entry, "id"))
+        # generate_simple_tag(node, "score", get_spreadsheet_data(entry, "score", "0"))
+        # generate_simple_tag(node, "duration", get_spreadsheet_data(entry, "duration", "0"))
+        # generate_simple_tag(node, "area", get_spreadsheet_data(entry, "area", "0"))
+        # generate_simple_tag(node, "amount", get_spreadsheet_data(entry, "amount", "0"))
 
     print prettify(root)
     file_handle = file("xmls/effects.xml", "w")

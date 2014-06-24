@@ -44,11 +44,14 @@ def generate_xml(tag_name, formats):
                 generate_child = generate_xml(childtag, child_format)
                 # parse information from raw string
                 child_infos = callback(content[key], child_format)
+#                print child_infos
 
                 curr_node = SubElement(node, key)
+                curr_node.text = ' '
                 for ckey, cvalue in child_infos.iteritems(): 
-                    subnode = generate_child(curr_node, cvalue)     # generate the tag
-                    subnode.text = ckey                             # set the tag text
+                    if ckey.strip() is not '':
+                        subnode = generate_child(curr_node, cvalue)     # generate the tag
+                        subnode.text = ckey                             # set the tag text
                     # print ckey, cvalue
 
         return node # return the generated node for other uses
@@ -60,6 +63,8 @@ def fill_with_default(entry):
     for key, value in entry.custom.iteritems():
         if value is None or value.text is None:
             ret[key] = defaults[key] if key in defaults else " "
+        elif value.text.strip() == '()':
+            ret[key] = '( )'
         else:
             ret[key] = value.text
     return ret 

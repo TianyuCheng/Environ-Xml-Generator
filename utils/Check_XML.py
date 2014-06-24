@@ -40,27 +40,30 @@ def check_events(reader, feed):
 def check_upgrades(reader, feed):
     print "No need to check duplicates in upgrades"
 
+def check_tags(reader, feed):
+    print "No need to check duplicates in tags"
+
 def check_costs(reader, feed):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(feed)
-    check_duplicates(entries, 'id', 'duration', 'amount', 'rangeconditions')
+    # check_duplicates(entries, 'id', 'duration', 'amount', 'rangeconditions')
 
 def check_effects(reader, feed):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(feed)
-    check_duplicates(entries, 'id', 'score', 'duration', 'area', 'amount')
+    # check_duplicates(entries, 'id', 'score', 'duration', 'area', 'amount')
 
 def check_probabilities(reader, feed):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(feed)
-    check_duplicates(entries, 'id', 'rangeconditions', 'prereqconditions')
+    # check_duplicates(entries, 'id', 'rangeconditions', 'prereqconditions')
 
 def check_ranges(reader, feed):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(feed)
-    ret = check_duplicates(entries, 'id', 'score', 'low', 'high', 'multiplier')
+    # ret = check_duplicates(entries, 'id', 'score', 'low', 'high', 'multiplier')
 
 def check_prereqs(reader, feed):
     # fetch the rows of the spreadsheet
     entries = reader.read_worksheet(feed)
-    check_duplicates(entries, 'id', 'keys', 'count', 'satisfied', 'unsatisfied')
+    # check_duplicates(entries, 'id', 'keys', 'count', 'satisfied', 'unsatisfied')
