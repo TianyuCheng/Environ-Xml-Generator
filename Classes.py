@@ -4,7 +4,8 @@ import re
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
-scores = ['EC', 'EN', 'AP', 'LP', 'WP', '']
+scores = ['FUNDS', 'PC', 'EC', 'EN', 'AP', 'LP', 'WP', 'CO2', 'TECH', 'GREEN', 'GDP', 'PP', 'EQ']
+nodes = ['B', 'E', 'U']
 
 # parent nodes
 probabilities_root = Element("probabilities")
@@ -24,6 +25,15 @@ def prettify(elem):
     rough_string = tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
+
+def get_type(key):
+    if key in scores:
+        return 'score'
+    if key[:1] in nodes:
+        return 'node'
+    if key[:1] == 'T':
+        return 'tag'
+    return 'none'
 
 #######################################################################
 #                             Probability                             #
@@ -76,6 +86,7 @@ class Probability(object):
         for key, value in self.__attribs.iteritems():
             child = SubElement(factor_node, 'factor')
             child.text = key
+            child.set('type', get_type(key))
             child.set('rel', value)
         return node
     
@@ -167,6 +178,7 @@ class Effect(object):
         for key, value in self.__attribs.iteritems():
             child = SubElement(factor_node, 'factor')
             child.text = key
+            child.set('type', get_type(key))
             child.set('amount', str(value))
         return node
 
