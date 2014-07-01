@@ -80,14 +80,14 @@ class Probability(object):
             return self.__xmlTag
 
         node = SubElement(probabilities_root, 'probability')
-        id_node = SubElement(node, 'id')
+        id_node = SubElement(node, 'key')
         id_node.text = self.id
         factor_node = SubElement(node, 'factors')
         for key, value in self.__attribs.iteritems():
             child = SubElement(factor_node, 'factor')
             child.text = key
             child.set('type', get_type(key))
-            child.set('rel', value)
+            child.set('rel', '1' if value == '+' else '-1')
         return node
     
     @staticmethod
@@ -127,8 +127,10 @@ class Effect(object):
         self.__attribs = dict() 
         texts = [item.strip() for item in texts.split(',')]
         for item in texts:
-            separator_index = item.find(' ')
-            score_name = item[:separator_index]
+            separator_index = item.find('+')
+            if separator_index == -1:
+                separator_index = item.find('-')
+            score_name = item[:separator_index - 1]
             amount = eval(item[separator_index:])
             if not isinstance(amount, int):
                 print "Error in evaluating amount in texts", text
@@ -170,15 +172,14 @@ class Effect(object):
             return self.__xmlTag
 
         node = SubElement(effects_root, 'effect')
-        id_node = SubElement(node, 'id')
+        id_node = SubElement(node, 'key')
         id_node.text = self.id
         probability_node = SubElement(node, 'probability')
         probability_node.text = self.__probabilityid
-        factor_node = SubElement(node, 'factors')
+        factor_node = SubElement(node, 'scores')
         for key, value in self.__attribs.iteritems():
-            child = SubElement(factor_node, 'factor')
+            child = SubElement(factor_node, 'score')
             child.text = key
-            child.set('type', get_type(key))
             child.set('amount', str(value))
         return node
 
