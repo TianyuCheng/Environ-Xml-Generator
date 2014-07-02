@@ -125,8 +125,13 @@ def generate_regions(reader, feed):
         generate_tag_with_attrs(node, 'description', get_spreadsheet_data(entry, 'description'))
         generate_tag_with_attrs(node, 'image', get_spreadsheet_data(entry, 'image'))
         generate_tag_with_attrs(node, 'reference', get_spreadsheet_data(entry, 'reference'))
-        generate_tag_with_attrs(node, 'environ', get_spreadsheet_data(entry, 'environ'))
-        generate_tag_with_attrs(node, 'economy', get_spreadsheet_data(entry, 'economy'))
+        # generate_tag_with_attrs(node, 'environ', get_spreadsheet_data(entry, 'environ'))
+        # generate_tag_with_attrs(node, 'economy', get_spreadsheet_data(entry, 'economy'))
+        
+        score_node = SubElement(node, 'scores')
+        generate_tag_with_attrs(score_node, 'score', 'EN', { "amount" : get_spreadsheet_data(entry, 'environ') })
+        generate_tag_with_attrs(score_node, 'score', 'EC', { "amount" : get_spreadsheet_data(entry, 'economy') })
+
         generate_tag_with_attrs(node, 'cost', get_spreadsheet_data(entry, 'cost'))
 
         generate_tag_list(node, 'bases', 'base', get_spreadsheet_data(entry, 'bases'), parse_dict, ['active', 'x', 'y'])
@@ -172,6 +177,8 @@ def generate_upgrades(reader, feed):
         generate_tag_with_attrs(node, 'model', get_spreadsheet_data(entry, 'model'))
         generate_tag_with_attrs(node, 'reference', get_spreadsheet_data(entry, 'reference'))
         generate_tag_with_attrs(node, 'time', get_spreadsheet_data(entry, 'time'))
+        generate_tag_with_attrs(node, 'repurchasable_times', get_spreadsheet_data(entry, 'repurchasabletimes'))
+        generate_tag_with_attrs(node, 'revertible_times', get_spreadsheet_data(entry, 'revertibletimes'))
         generate_tag_list(node, 'tags', 'tag', get_spreadsheet_data(entry, 'tags'), parse_list, ',')
 
         # generate probability
