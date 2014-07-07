@@ -50,9 +50,25 @@ def parse_dict(text, options):
     """
     if text is None:
         return {}
-    pattern = re.compile('(.+?):\((.+?)\),{0,1}');
+    pattern = re.compile('(.+?):\((.+?)\),{0,1}')
     groups = pattern.findall(text)
-    return dict((key, dict((key, value) for key, value in zip(options, groups[0][1].split(',')))) for key, value in groups)
+    ret = dict( (item[0], dict((key, value) for key, value in zip(options, item[1].split(',')))) for item in groups)
+    # print groups, "=>", ret
+    return ret
+
+def parse_dict2(text, options):
+    """@todo: Docstring for parse_dict.
+
+    :text: raw string input, separated with comma
+    :returns: a dictionary
+    """
+    if text is None:
+        return {}
+    pattern = re.compile('(.+?):(.+?),{0,1}')
+    groups = pattern.findall(text)
+    ret = dict( (item[0], dict((key, value) for key, value in zip(options, item[1]))) for item in groups)
+    # print groups, "=>", ret
+    return ret
 
 #######################################################################
 #                  helper functions to generate tags                  #
@@ -104,7 +120,9 @@ def prettify(elem):
     """
     rough_string = tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
-    return reparsed.toprettyxml(indent="  ")
+    ret = reparsed.toprettyxml(indent="  ")
+    # print ret 
+    return ret
 
 #######################################################################
 #                           XML Generation                            #
@@ -156,7 +174,7 @@ def generate_bases(reader, feed):
         generate_tag_with_attrs(node, 'reward', get_spreadsheet_data(entry, 'reward'))
 
         generate_tag_list(node, 'tags', 'tag', get_spreadsheet_data(entry, 'tags'), parse_list, ',')
-        generate_tag_list(node, 'upgrades', 'upgrade', get_spreadsheet_data(entry, 'upgrades'), parse_list, ',')
+        generate_tag_list(node, 'upgrades', 'upgrade', get_spreadsheet_data(entry, 'upgrades'), parse_dict2,['state'] )
     return root
 
 def generate_upgrades(reader, feed):
