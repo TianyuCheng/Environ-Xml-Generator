@@ -67,7 +67,6 @@ def parse_dict2(text, options):
     pattern = re.compile('(.+?):(.+?),{0,1}')
     groups = pattern.findall(text)
     ret = dict( (item[0], dict((key, value) for key, value in zip(options, item[1]))) for item in groups)
-    # print groups, "=>", ret
     return ret
 
 #######################################################################
@@ -107,8 +106,11 @@ def generate_tag_list(parent, plural, singular, text, process_func, attribs = []
     node = SubElement(parent, plural)
     ret = process_func(text, attribs)
     if isinstance(ret, dict):
-        for key, value in ret.iteritems():
-            generate_tag_with_attrs(node, singular, key, value)
+        items = sorted(ret, key = lambda key : key)
+        if len(items) > 0 and isinstance(items[0], dict):
+            items = sorted(items, key = lambda key : ret[key]['state'], reverse = True)
+        for key in items:
+            generate_tag_with_attrs(node, singular, key, ret[key])
         return node
     else:
         for item in ret:
