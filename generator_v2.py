@@ -106,7 +106,7 @@ def generate_tag_list(parent, plural, singular, text, process_func, attribs = []
     node = SubElement(parent, plural)
     ret = process_func(text, attribs)
     if isinstance(ret, dict):
-        items = sorted(ret, key = lambda key : key)
+        items = sorted(ret, key = lambda key : int(key[1:]))
         if len(items) > 0 and isinstance(items[0], dict):
             items = sorted(items, key = lambda key : ret[key]['state'], reverse = True)
         for key in items:
