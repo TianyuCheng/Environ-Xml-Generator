@@ -195,11 +195,20 @@ def generate_upgrades(reader, feed):
         generate_tag_with_attrs(node, 'description', get_spreadsheet_data(entry, 'description'))
         generate_tag_with_attrs(node, 'image', get_spreadsheet_data(entry, 'image'))
         generate_tag_with_attrs(node, 'model', get_spreadsheet_data(entry, 'model'))
+        generate_tag_with_attrs(node, 'icon', get_spreadsheet_data(entry, 'icon'))
         generate_tag_with_attrs(node, 'reference', get_spreadsheet_data(entry, 'reference'))
         generate_tag_with_attrs(node, 'time', get_spreadsheet_data(entry, 'time'))
         generate_tag_with_attrs(node, 'repurchasable_times', get_spreadsheet_data(entry, 'repurchasabletimes'))
         generate_tag_with_attrs(node, 'revertible_times', get_spreadsheet_data(entry, 'revertibletimes'))
         generate_tag_list(node, 'tags', 'tag', get_spreadsheet_data(entry, 'tags'), parse_list, ',')
+
+        # generate costs
+        costs = get_spreadsheet_data(entry, 'costs')
+        costs_node = SubElement(node, 'costs')
+        if costs is not None:
+            for item in costs.split('\n'):
+                effect = Effect(item.strip())
+                generate_tag_with_attrs(costs_node, 'cost', effect.getId())
 
         # generate probability
         probs = get_spreadsheet_data(entry, 'prereqs')
