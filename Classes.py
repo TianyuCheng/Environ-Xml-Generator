@@ -126,15 +126,16 @@ class Effect(object):
 
         self.__attribs = dict() 
         texts = [item.strip() for item in texts.split(',')]
+        print texts
         for item in texts:
             separator_index = item.find('+')
             if separator_index == -1:
                 separator_index = item.find('-')
-            score_name = item[:separator_index - 1]
+            score_name = item[:separator_index].strip()
             amount = eval(item[separator_index:])
-            if not isinstance(amount, int):
-                print "Error in evaluating amount in texts", text
-                return
+            # if not isinstance(amount, int) or not isinstance(amount, float):
+            #     print "Error in evaluating amount in texts", text
+            #     return
             self.__attribs[score_name] = amount
 
         tostr = str(self)
