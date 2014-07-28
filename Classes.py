@@ -38,7 +38,7 @@ def get_type(key):
 #######################################################################
 #                               Prereqs                               #
 #######################################################################
-class Prereq(object):
+class Probability(object):
     """Docstring for Prereq. """
 
     def __init__(self, text):
@@ -75,7 +75,7 @@ class Prereq(object):
             probability_index += 1
             self.id = 'P%d' % probability_index
             probabilities[tostr] = self
-        self.__xmlTag = self.toXmlTag()
+            self.__xmlTag = self.toXmlTag()
 
     def getId(self):
         return self.id
@@ -106,64 +106,68 @@ class Prereq(object):
             factor_node.set('rel', value[0])
             factor_node.set('amount', value[1])
 
-#######################################################################
-#                             Probability                             #
-#######################################################################
-class Probability(object):
-    """docstring for Probability"""
-
-    def __init__(self, text):
-        super(Probability, self).__init__()
-        self.__xmlTag = None
-        self.text = text
-        
-        texts = [item.strip() for item in text.split('&')]
-        self.__attribs = dict( (key.strip(), value.strip()) for key, value in map(lambda x : [x[:-1], x[-1:]], texts))
-
-        tostr = str(self.__attribs)
-        if tostr in probabilities:
-            self.id = probabilities[tostr].getId()
-            self = probabilities[tostr]
-        else:
-            global probability_index
-            probability_index += 1
-            self.id = 'P%d' % probability_index
-            probabilities[tostr] = self
-        self.__xmlTag = self.toXmlTag()
-    
-    def getId(self):
-        return self.id
-
-    def __str__(self):
-        """@todo: Docstring for __str__.
-        :returns: @todo
-
-        """
-        # return str(self.__attribs)
-        return self.id
- 
-    def toXmlTag(self):
-        """@todo: Docstring for toXml.
-        :returns: @todo
-        """
-        if self.__xmlTag is not None:
-            return self.__xmlTag
-
-        node = SubElement(probabilities_root, 'probability')
-        id_node = SubElement(node, 'key')
-        id_node.text = self.id
-        factor_node = SubElement(node, 'factors')
-        for key, value in self.__attribs.iteritems():
-            child = SubElement(factor_node, 'factor')
-            child.text = key
-            child.set('type', get_type(key))
-            child.set('rel', '1' if value == '+' else '-1')
-            child.set('amount', '0')
-        return node
-    
     @staticmethod
     def rootToXml():
         return prettify(probabilities_root)
+
+# #######################################################################
+# #                             Probability                             #
+# #######################################################################
+# class Probability(object):
+#     """docstring for Probability"""
+#
+#     def __init__(self, text):
+#         super(Probability, self).__init__()
+#         self.__xmlTag = None
+#         self.text = text
+#         
+#         texts = [item.strip() for item in text.split('&')]
+#         self.__attribs = dict( (key.strip(), value.strip()) for key, value in map(lambda x : [x[:-1], x[-1:]], texts))
+#
+#         tostr = str(self.__attribs)
+#         if tostr in probabilities:
+#             self.id = probabilities[tostr].getId()
+#             self = probabilities[tostr]
+#         else:
+#             global probability_index
+#             probability_index += 1
+#             self.id = 'P%d' % probability_index
+#             probabilities[tostr] = self
+#         self.__xmlTag = self.toXmlTag()
+#     
+#     def getId(self):
+#         return self.id
+#
+#     def __str__(self):
+#         """@todo: Docstring for __str__.
+#         :returns: @todo
+#
+#         """
+#         # return str(self.__attribs)
+#         return self.id
+#  
+#     def toXmlTag(self):
+#         """@todo: Docstring for toXml.
+#         :returns: @todo
+#         """
+#         if self.__xmlTag is not None:
+#             return self.__xmlTag
+#
+#         node = SubElement(probabilities_root, 'probability')
+#         id_node = SubElement(node, 'key')
+#         id_node.text = self.id
+#         factor_node = SubElement(node, 'factors')
+#         for key, value in self.__attribs.iteritems():
+#             child = SubElement(factor_node, 'factor')
+#             child.text = key
+#             child.set('type', get_type(key))
+#             child.set('rel', '1' if value == '+' else '-1')
+#             child.set('amount', '0')
+#         return node
+#     
+#     @staticmethod
+#     def rootToXml():
+#         return prettify(probabilities_root)
 
 
 #######################################################################

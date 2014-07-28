@@ -223,7 +223,7 @@ def generate_upgrades(reader, feed):
         prereqs_node = SubElement(node, 'prereqs')
         if prereqs is not None:
             for item in prereqs.split(','):
-                prereq  = Prereq(item.strip())
+                prereq  = Probability(item.strip())
                 generate_tag_with_attrs(prereqs_node, 'prereq', prereq.getId())
 
         # generate effects
@@ -261,7 +261,7 @@ def generate_events(reader, feed):
         prereqs_node = SubElement(node, 'prereqs')
         if prereqs is not None:
             for item in prereqs.split(','):
-                prereq  = Prereq(item.strip())
+                prereq  = Probability(item.strip())
                 generate_tag_with_attrs(prereqs_node, 'prereq', prereq.getId())
 
         # generate probability
