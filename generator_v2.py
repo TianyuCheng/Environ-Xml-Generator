@@ -210,13 +210,21 @@ def generate_upgrades(reader, feed):
                 effect = Effect(item.strip())
                 generate_tag_with_attrs(costs_node, 'cost', effect.getId())
 
-        # generate probability
-        probs = get_spreadsheet_data(entry, 'prereqs')
-        probs_node = SubElement(node, 'probabilities')
-        if probs is not None:
-            for item in probs.split(','):
-                probability = Probability(item.strip())
-                generate_tag_with_attrs(probs_node, 'probability', probability.getId())
+        # # generate probability
+        # probs = get_spreadsheet_data(entry, 'prereqs')
+        # probs_node = SubElement(node, 'probabilities')
+        # if probs is not None:
+        #     for item in probs.split(','):
+        #         probability = Probability(item.strip())
+        #         generate_tag_with_attrs(probs_node, 'probability', probability.getId())
+
+        # generate prereqs
+        prereqs = get_spreadsheet_data(entry, 'prereqs')
+        prereqs_node = SubElement(node, 'prereqs')
+        if prereqs is not None:
+            for item in prereqs.split(','):
+                prereq  = Prereq(item.strip())
+                generate_tag_with_attrs(prereqs_node, 'prereq', prereq.getId())
 
         # generate effects
         effects = get_spreadsheet_data(entry, 'effects')
@@ -247,6 +255,14 @@ def generate_events(reader, feed):
         generate_tag_with_attrs(node, 'reference', get_spreadsheet_data(entry, 'reference'))
         generate_tag_with_attrs(node, 'duration', get_spreadsheet_data(entry, 'duration'))
         generate_tag_list(node, 'tags', 'tag', get_spreadsheet_data(entry, 'tags'), parse_list, ',')
+
+        # generate prereqs
+        prereqs = get_spreadsheet_data(entry, 'prereqs')
+        prereqs_node = SubElement(node, 'prereqs')
+        if prereqs is not None:
+            for item in prereqs.split(','):
+                prereq  = Prereq(item.strip())
+                generate_tag_with_attrs(prereqs_node, 'prereq', prereq.getId())
 
         # generate probability
         probs = get_spreadsheet_data(entry, 'probability')

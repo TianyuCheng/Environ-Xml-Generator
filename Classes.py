@@ -36,9 +36,79 @@ def get_type(key):
     return 'none'
 
 #######################################################################
+#                               Prereqs                               #
+#######################################################################
+class Prereq(object):
+    """Docstring for Prereq. """
+
+    def __init__(self, text):
+        """@todo: to be defined1. """
+        self.__xmlTag = None
+        self.text = text
+        # check which type
+        
+        self.__attribs = dict()
+        
+        index1 = text.find('>')
+        index2 = text.find('<')
+        index3 = text.find('+')
+        index4 = text.find('-')
+        if index1 > 0:
+            key = text[:index1].strip()
+            self.__attribs[key] = ('1', text[index1 + 1:].strip())
+        elif index2 > 0:
+            key = text[:index2].strip()
+            self.__attribs[key] = ('-1', text[index2 + 1:].strip())
+        elif index3 > 0:
+            key = text[:index3].strip()
+            self.__attribs[key] = ('1', '0')
+        elif index4 > 0:
+            key = text[:index4].strip()
+            self.__attribs[key] = ('-1', '0')
+
+        tostr = str(self.__attribs)
+        if tostr in probabilities:
+            self.id = probabilities[tostr].getId()
+            self = probabilities[tostr]
+        else:
+            global probability_index
+            probability_index += 1
+            self.id = 'P%d' % probability_index
+            probabilities[tostr] = self
+        self.__xmlTag = self.toXmlTag()
+
+    def getId(self):
+        return self.id
+
+    def __str__(self):
+        """@todo: Docstring for __str__.
+        :returns: @todo
+
+        """
+        # return str(self.__attribs)
+        return self.id
+
+    def toXmlTag(self):
+        """@todo: Docstring for toXml.
+        :returns: @todo
+        """
+        if self.__xmlTag is not None:
+            return self.__xmlTag
+
+        node = SubElement(probabilities_root, 'probability')
+        key_node = SubElement(node, 'key')
+        key_node.text = self.id
+        factors_node = SubElement(node, 'factors')
+        for key, value in self.__attribs.iteritems():
+            factor_node = SubElement(factors_node, 'factor')
+            factor_node.text = key
+            factor_node.set('type', get_type(key))
+            factor_node.set('rel', value[0])
+            factor_node.set('amount', value[1])
+
+#######################################################################
 #                             Probability                             #
 #######################################################################
-
 class Probability(object):
     """docstring for Probability"""
 
@@ -88,6 +158,7 @@ class Probability(object):
             child.text = key
             child.set('type', get_type(key))
             child.set('rel', '1' if value == '+' else '-1')
+            child.set('amount', '0')
         return node
     
     @staticmethod
@@ -126,7 +197,7 @@ class Effect(object):
 
         self.__attribs = dict() 
         texts = [item.strip() for item in texts.split(',')]
-        print texts
+        # print texts
         for item in texts:
             separator_index = item.find('+')
             if separator_index == -1:
