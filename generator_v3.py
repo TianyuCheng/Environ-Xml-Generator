@@ -13,6 +13,7 @@ from re import compile
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
+
 #######################################################################
 #                          global variables                           #
 #######################################################################
@@ -150,6 +151,7 @@ class Region(Info):
         self.id = _id
         self.initials = initials
         self.name = name
+        self.growth_rate = "0"
 
     def set_initial_values(self, pairs):
         self.initial_values = dict()
@@ -161,7 +163,9 @@ class Region(Info):
                     # population as an exception
                     if key == 'PO':
                         amount, rate = value[1:-1].split(",")
-                        self.initial_values[key] = { "amount": amount, "rate": rate}
+                        # self.initial_values[key] = { "amount": amount, "rate": rate}
+                        self.initial_values[key] = amount;
+                        self.growth_rate = rate
                     else:
                         self.initial_values[key] = value
             except ValueError:
@@ -204,14 +208,15 @@ class Region(Info):
         create_subselement(node, "name", self.name)
         create_subselement(node, "description", self.get("description"))
         create_subselement(node, "image", self.get("image"))
+        create_subselement(node, "growth_rate", self.growth_rate)
 
         # initial values
-        initial_values_node = SubElement(node, "initial_values")
+        initial_values_node = SubElement(node, "scores")
         for key, value in self.initial_values.iteritems():
             if isinstance(value, dict):
-                create_subselement(initial_values_node, "value", key, value)
+                create_subselement(initial_values_node, "score", key, value)
             else:
-                create_subselement(initial_values_node, "value", key, {"amount":value})
+                create_subselement(initial_values_node, "score", key, {"amount":value})
 
         # unique conditions
         effects_node = SubElement(node, "unique_conditions")
@@ -336,11 +341,15 @@ class Upgrade(Info):
         node = Element("upgrade")
         create_subselement(node, "key", self.key)
         create_subselement(node, "title", self.title)
-        create_subselement(node, "description", self.get("description"))
+        # if self.get("description") is not None:
+            # create_subselement(node, "description", self.get("description"))
+        # else:
+        create_subselement(node, "description", "Lorem ipsum")
         create_subselement(node, "image", self.get("image"))
         create_subselement(node, "model", self.get("model"))
         create_subselement(node, "icon", self.get("icon"))
         create_subselement(node, "reference", self.get("reference"))
+        create_subselement(node, "build_time", self.get("build_time"))
 
         create_subselement(node, "levels", self.get("levels"))
         multipliers_node = SubElement(node, "multipliers")
@@ -348,10 +357,9 @@ class Upgrade(Info):
         create_subselement(multipliers_node, "effect", self.get("effect_multiplier"))
 
         # create costs and effects
-        if self.costs is None:
-            create_subselement(node, "cost", "")
-        else:
-            create_subselement(node, "cost", self.costs.id)
+        costs_node = SubElement(node, "costs")
+        if self.costs is not None:
+            create_subselement(costs_node, "cost", self.costs.id)
 
         effects_node = SubElement(node, "effects")
         for effect in self.effects:
@@ -468,16 +476,8 @@ class Prerequisite(Info):
     def toXML(self):
         node = Element("prereq")
         key_node = create_subselement(node, "key", self.id)
-        # target_node = create_subselement(node, self.type, "")
-        # if self.type == "node":
-        #     subkey_node = create_subselement(target_node, "key", self.key)
-        #     relation_node = create_subselement(target_node, "relation", str(self.relation))
-        # else:
-        #     subkey_node = create_subselement(target_node, "key", self.key)
-        #     relation_node = create_subselement(target_node, "relation", str(self.relation))
-        #     amount_node = create_subselement(target_node, "amount", self.amount)
         if self.type == "node":
-            target_node = create_subselement(node, "factor", self.key, {"relation": str(self.relation), "type": self.type})
+            target_node = create_subselement(node, "factor", self.key, {"relation": str(self.relation), "amount": "0", "type": self.type})
         else:
             target_node = create_subselement(node, "factor", self.key, {"relation": str(self.relation), "amount": str(self.amount), "type": self.type})
         return node
@@ -525,7 +525,7 @@ class Probability(Info):
         key_node = create_subselement(node, "key", self.id)
         factors_node = create_subselement(node, "factors", "")
         for key, value in self.items.iteritems():
-            factor_node = create_subselement(factors_node, "factor", key, {"type": value["type"], "relation": str(value["relation"])})
+            factor_node = create_subselement(factors_node, "factor", key, {"type": value["type"], "relation": str(value["relation"]), "amount": "0"})
             # subkey_node = create_subselement(factor_node, "key", key)
             # relation_node = create_subselement(factor_node, "relation", str(value["relation"]))
         return node
@@ -576,6 +576,7 @@ class Effect(object):
             raise
         pairs = pairs[0]
         # factor(...)
+        # print pairs[0], "=>",  pairs[1]
         self.targets = pairs[0][:-2].split("&")
         self.key = pairs[1]
         params = pairs[2].split(",")
@@ -603,10 +604,13 @@ class Effect(object):
     def toXML(self):
         node = Element("effect")
         key_node = create_subselement(node, "key", self.id)
-        target_node = create_subselement(node, "target", "")
+        target_node = create_subselement(node, "targets", "")
+        duration_node = create_subselement(node, "duration", str(self.duration))
         for target in self.targets:
-            create_subselement(target_node, "target", target)
-        create_subselement(node, "score", str(self.key), {"amount":str(self.amount), "duration": str(self.duration)})
+            if target.strip():
+                create_subselement(target_node, "target", target)
+        scores_node = SubElement(node, "scores")
+        create_subselement(scores_node, "score", str(self.key), {"amount":str(self.amount)})
         return node
 
 #######################################################################
@@ -622,9 +626,10 @@ def init_keys(reader, feed):
 def init_tags(reader, feed):
     entries = reader.read_worksheet(feed)
     for entry in entries:
-        key = get_spreadsheet_data(entry, "key")
+        key = get_spreadsheet_data(entry, "key").strip()
         if key is not None:
-            tags[key] = get_spreadsheet_data(entry, "title")
+            tags[key] = Tag(key, get_spreadsheet_data(entry, "title").strip())
+            # tags[key] = get_spreadsheet_data(entry, "title").strip()
 
 def init_regions(reader, feed):
     entries = reader.read_worksheet(feed)
@@ -725,40 +730,39 @@ if __name__ == '__main__':
     init_events(reader, feeds['Events'])
 
     root_tags = Element("tags")
-    for key, value in tags.iteritems():
-        root_tags.append(Tag(key, value).toXML())
+    for key, value in sorted(tags.iteritems(), key = lambda x: int(x[1].key[1:])):
+    # for key, value in tags.iteritems():
+        root_tags.append(value.toXML())
     with open('xmls/tags.xml', 'w') as f:
         f.write(prettify(root_tags))
 
     root_effects = Element("effects")
-    for key, value in effects.iteritems():
+    for key, value in sorted(effects.iteritems(), key = lambda x: int(x[1].id[1:])):
+    # for key, value in effects.iteritems():
         root_effects.append(value.toXML())
     with open('xmls/effects.xml', 'w') as f:
         f.write(prettify(root_effects))
 
     root_costs = Element("costs")
-    for key, value in costs.iteritems():
+    for key, value in sorted(costs.iteritems(), key = lambda x: int(x[1].id[1:])):
+    # for key, value in costs.iteritems():
         root_costs.append(value.toXML())
     with open('xmls/costs.xml', 'w') as f:
         f.write(prettify(root_costs))
 
     root_prereqs = Element("prereqs")
-    for key, value in prereqs.iteritems():
+    for key, value in sorted(prereqs.iteritems(), key = lambda x: int(x[1].id[1:])):
+    # for key, value in prereqs.iteritems():
         root_prereqs.append(value.toXML())
     with open('xmls/prereqs.xml', 'w') as f:
         f.write(prettify(root_prereqs))
 
     root_probabilities = Element("probabilities")
-    for key, value in probabilities.iteritems():
+    for key, value in sorted(probabilities.iteritems(), key = lambda x: int(x[1].id[1:])):
+    # for key, value in probabilities.iteritems():
         root_probabilities.append(value.toXML())
     with open('xmls/probabilities.xml', 'w') as f:
         f.write(prettify(root_probabilities))
-
-    # print keys
-    # print regions
-    # print bases
-    # print upgrades
-    # print events
 
     root_regions = Element("regions")
     for key, value in sorted(regions.iteritems(), key = lambda x: x[1].id):
@@ -772,14 +776,16 @@ if __name__ == '__main__':
     with open('xmls/bases.xml', 'w') as f:
         f.write(prettify(root_bases))
 
-    root_upgrades = Element("upgrades")
-    for key, value in sorted(upgrades.iteritems(), key = lambda x: x[1].key):
-        root_upgrades.append(value.toXML())
-    with open('xmls/upgrades.xml', 'w') as f:
-        f.write(prettify(root_upgrades))
-
     root_events = Element("events")
     for key, value in sorted(events.iteritems(), key = lambda x: x[1].key):
         root_events.append(value.toXML())
     with open('xmls/events.xml', 'w') as f:
         f.write(prettify(root_events))
+
+    root_upgrades = Element("upgrades")
+    upgrades = sorted(upgrades.iteritems(), key = lambda x: int(x[1].get("order")))
+    upgrades = sorted(upgrades, key = lambda x: int( x[1].key[1:x[1].key.find('-')]) )
+    for key, value in upgrades:
+        root_upgrades.append(value.toXML())
+    with open('xmls/upgrades.xml', 'w') as f:
+        f.write(prettify(root_upgrades))
