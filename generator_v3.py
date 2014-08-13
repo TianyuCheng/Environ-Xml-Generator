@@ -125,7 +125,10 @@ class Info(object):
 
         groups = compile("\s*").split(effects.strip())
         for group in groups:
-            self.effects.append(Effect(group))
+            fx = Effect(group)
+            self.effects.append(fx)
+            # print fx.id, ">>>", group
+        # print '====>'
 
         # for effect in self.effects:
         #     print effect
@@ -476,10 +479,11 @@ class Prerequisite(Info):
     def toXML(self):
         node = Element("prereq")
         key_node = create_subselement(node, "key", self.id)
+        factors_node = create_subselement(node, "factors", "")
         if self.type == "node":
-            target_node = create_subselement(node, "factor", self.key, {"relation": str(self.relation), "amount": "0", "type": self.type})
+            target_node = create_subselement(factors_node, "factor", self.key, {"relation": str(self.relation), "amount": "0", "type": self.type})
         else:
-            target_node = create_subselement(node, "factor", self.key, {"relation": str(self.relation), "amount": str(self.amount), "type": self.type})
+            target_node = create_subselement(factors_node, "factor", self.key, {"relation": str(self.relation), "amount": str(self.amount), "type": self.type})
         return node
 
 class Probability(Info):
@@ -599,7 +603,7 @@ class Effect(object):
             effects[key] = self
 
     def __str__(self):
-        return str(self.targets) + "|" + str(self.duration) + "|" + str(self.amount)
+        return str(self.targets) + "|" + self.key + "|" + str(self.duration) + "|" + str(self.amount)
 
     def toXML(self):
         node = Element("effect")
