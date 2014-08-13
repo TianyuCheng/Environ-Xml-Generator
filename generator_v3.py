@@ -267,7 +267,7 @@ class Base(Info):
         for pair in pairs:
             key = pair[0]
             environment, economy = pair[1].split(",")
-            _impacts[key] = { "EC":environment, "EN":economy }
+            _impacts[key] = { "EC":economy, "EN": environment }
 
         for initials, region in regions.iteritems():
             try:
@@ -328,6 +328,12 @@ class Base(Info):
         for tag in self.tags:
             create_subselement(tags_node, "tag", tag)
 
+
+        # tags
+        tags_node = SubElement(node, "tags")
+        for tag in self.tags:
+            create_subselement(tags_node, "tag", tag)
+
         return node
 
 class Upgrade(Info):
@@ -338,6 +344,7 @@ class Upgrade(Info):
         self.key = key 
 
     def set_base(self, key, state):
+        self.set("base", key)
         bases[key].upgrades[self.key] = { "state" : state }
 
     def toXML(self):
@@ -368,6 +375,10 @@ class Upgrade(Info):
         for effect in self.effects:
             create_subselement(effects_node, "effect", effect.id)
 
+        prereqs_node = SubElement(node, "prereqs")
+        for prereq in self.prereqs:
+            create_subselement(prereqs_node, "prereq", prereq.id)
+
         # tags
         tags_node = SubElement(node, "tags")
         for tag in self.tags:
@@ -391,6 +402,7 @@ class Event(Info):
         create_subselement(node, "model", self.get("model"))
         create_subselement(node, "reference", self.get("reference"))
         create_subselement(node, "duration", self.get("duration"))
+        create_subselement(node, "scope", self.get("scope"))
 
         # tags
         tags_node = SubElement(node, "tags")
@@ -701,6 +713,7 @@ def init_events(reader, feed):
             event.set("model", get_spreadsheet_data(entry, "model"))
             event.set("reference", get_spreadsheet_data(entry, "reference"))
             event.set("duration", get_spreadsheet_data(entry, "duration"))
+            event.set("scope", get_spreadsheet_data(entry, "scope"))
             event.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             event.set_probabilities(get_spreadsheet_data(entry, "probability"))
             event.set_effects(get_spreadsheet_data(entry, "effects"))
@@ -788,7 +801,7 @@ if __name__ == '__main__':
 
     root_upgrades = Element("upgrades")
     upgrades = sorted(upgrades.iteritems(), key = lambda x: int(x[1].get("order")))
-    upgrades = sorted(upgrades, key = lambda x: int( x[1].key[1:x[1].key.find('-')]) )
+    upgrades = sorted(upgrades, key = lambda x: int(x[1].get("base")[1:]))
     for key, value in upgrades:
         root_upgrades.append(value.toXML())
     with open('xmls/upgrades.xml', 'w') as f:
