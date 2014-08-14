@@ -723,53 +723,53 @@ def generate_xml():
     # for key, value in tags.iteritems():
         root_tags.append(value.toXML())
     with open('xmls/tags.xml', 'w') as f:
-        f.write(prettify(root_tags))
+        f.write(prettify(root_tags).encode("utf-8"))
 
     root_effects = Element("effects")
     for key, value in sorted(effects.iteritems(), key = lambda x: int(x[1].id[1:])):
     # for key, value in effects.iteritems():
         root_effects.append(value.toXML())
     with open('xmls/effects.xml', 'w') as f:
-        f.write(prettify(root_effects))
+        f.write(prettify(root_effects).encode("utf-8"))
 
     root_costs = Element("costs")
     for key, value in sorted(costs.iteritems(), key = lambda x: int(x[1].id[1:])):
     # for key, value in costs.iteritems():
         root_costs.append(value.toXML())
     with open('xmls/costs.xml', 'w') as f:
-        f.write(prettify(root_costs))
+        f.write(prettify(root_costs).encode("utf-8"))
 
     root_prereqs = Element("prereqs")
     for key, value in sorted(prereqs.iteritems(), key = lambda x: int(x[1].id[1:])):
     # for key, value in prereqs.iteritems():
         root_prereqs.append(value.toXML())
     with open('xmls/prereqs.xml', 'w') as f:
-        f.write(prettify(root_prereqs))
+        f.write(prettify(root_prereqs).encode("utf-8"))
 
     root_probabilities = Element("probabilities")
     for key, value in sorted(probabilities.iteritems(), key = lambda x: int(x[1].id[1:])):
     # for key, value in probabilities.iteritems():
         root_probabilities.append(value.toXML())
     with open('xmls/probabilities.xml', 'w') as f:
-        f.write(prettify(root_probabilities))
+        f.write(prettify(root_probabilities).encode("utf-8"))
 
     root_regions = Element("regions")
     for key, value in sorted(regions.iteritems(), key = lambda x: int(x[1].id)):
         root_regions.append(value.toXML())
     with open('xmls/regions.xml', 'w') as f:
-        f.write(prettify(root_regions))
+        f.write(prettify(root_regions).encode("utf-8"))
 
     root_bases = Element("bases")
     for key, value in sorted(bases.iteritems(), key = lambda x: int(x[1].key[1:])):
         root_bases.append(value.toXML())
     with open('xmls/bases.xml', 'w') as f:
-        f.write(prettify(root_bases))
+        f.write(prettify(root_bases).encode("utf-8"))
 
     root_events = Element("events")
     for key, value in sorted(events.iteritems(), key = lambda x: int(x[1].key[1:])):
         root_events.append(value.toXML())
     with open('xmls/events.xml', 'w') as f:
-        f.write(prettify(root_events))
+        f.write(prettify(root_events).encode("utf-8"))
 
     root_upgrades = Element("upgrades")
     _upgrades = sorted(upgrades.iteritems(), key = lambda x: int(x[1].get("order")))
@@ -777,7 +777,7 @@ def generate_xml():
     for key, value in _upgrades:
         root_upgrades.append(value.toXML())
     with open('xmls/upgrades.xml', 'w') as f:
-        f.write(prettify(root_upgrades))
+        f.write(prettify(root_upgrades).encode("utf-8"))
 
 #######################################################################
 #                          semantic checker                           #
