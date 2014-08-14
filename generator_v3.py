@@ -13,6 +13,7 @@ from re import compile
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
+from sys import stdout, stderr
 
 #######################################################################
 #                          global variables                           #
@@ -27,6 +28,8 @@ prereqs = dict()
 probabilities = dict()
 costs = dict()
 effects = dict()
+
+targets = dict()
 
 #######################################################################
 #                    spreadsheet data manipulation                    #
@@ -328,12 +331,6 @@ class Base(Info):
         for tag in self.tags:
             create_subselement(tags_node, "tag", tag)
 
-
-        # tags
-        tags_node = SubElement(node, "tags")
-        for tag in self.tags:
-            create_subselement(tags_node, "tag", tag)
-
         return node
 
 class Upgrade(Info):
@@ -351,10 +348,7 @@ class Upgrade(Info):
         node = Element("upgrade")
         create_subselement(node, "key", self.key)
         create_subselement(node, "title", self.title)
-        # if self.get("description") is not None:
-            # create_subselement(node, "description", self.get("description"))
-        # else:
-        create_subselement(node, "description", "Lorem ipsum")
+        create_subselement(node, "description", self.get("description"))
         create_subselement(node, "image", self.get("image"))
         create_subselement(node, "model", self.get("model"))
         create_subselement(node, "icon", self.get("icon"))
@@ -720,32 +714,10 @@ def init_events(reader, feed):
             event.set_tags(get_spreadsheet_data(entry, "tags"))
             events[key] = event
 
-
 #######################################################################
-#                            main function                            #
+#                              Generator                              #
 #######################################################################
-if __name__ == '__main__':
-    # set up username or use the default account
-    if len(sys.argv) >= 2:
-        username = sys.argv[1]
-    else:
-        username = "skysource.tony@gmail.com"
-
-    # set up GoogleSpreadSheetReader
-    reader = SpreadsheetReader(username, "EnvironNodesInfo (Matt and Peter).gsheet")
-    feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
-    
-    print "Here are the worksheets available"
-    for key, value in feeds.iteritems():
-        print key, " => ", value
-
-    init_keys(reader, feeds['Keys'])
-    init_tags(reader, feeds['Tags'])
-    init_regions(reader, feeds['Regions'])
-    init_bases(reader, feeds['Bases'])
-    init_upgrades(reader, feeds['Upgrades'])
-    init_events(reader, feeds['Events'])
-
+def generate_xml():
     root_tags = Element("tags")
     for key, value in sorted(tags.iteritems(), key = lambda x: int(x[1].key[1:])):
     # for key, value in tags.iteritems():
@@ -782,27 +754,259 @@ if __name__ == '__main__':
         f.write(prettify(root_probabilities))
 
     root_regions = Element("regions")
-    for key, value in sorted(regions.iteritems(), key = lambda x: x[1].id):
+    for key, value in sorted(regions.iteritems(), key = lambda x: int(x[1].id)):
         root_regions.append(value.toXML())
     with open('xmls/regions.xml', 'w') as f:
         f.write(prettify(root_regions))
 
     root_bases = Element("bases")
-    for key, value in sorted(bases.iteritems(), key = lambda x: x[1].key):
+    for key, value in sorted(bases.iteritems(), key = lambda x: int(x[1].key[1:])):
         root_bases.append(value.toXML())
     with open('xmls/bases.xml', 'w') as f:
         f.write(prettify(root_bases))
 
     root_events = Element("events")
-    for key, value in sorted(events.iteritems(), key = lambda x: x[1].key):
+    for key, value in sorted(events.iteritems(), key = lambda x: int(x[1].key[1:])):
         root_events.append(value.toXML())
     with open('xmls/events.xml', 'w') as f:
         f.write(prettify(root_events))
 
     root_upgrades = Element("upgrades")
-    upgrades = sorted(upgrades.iteritems(), key = lambda x: int(x[1].get("order")))
-    upgrades = sorted(upgrades, key = lambda x: int(x[1].get("base")[1:]))
-    for key, value in upgrades:
+    _upgrades = sorted(upgrades.iteritems(), key = lambda x: int(x[1].get("order")))
+    _upgrades = sorted(_upgrades, key = lambda x: int(x[1].get("base")[1:]))
+    for key, value in _upgrades:
         root_upgrades.append(value.toXML())
     with open('xmls/upgrades.xml', 'w') as f:
         f.write(prettify(root_upgrades))
+
+#######################################################################
+#                          semantic checker                           #
+#######################################################################
+def semantic_check():
+    print "========================="
+    print "... Semantic Checking ..."
+    print "========================="
+
+    # combine all available targets
+    targets.update(bases)
+    targets.update(upgrades)
+    targets.update(events)
+    targets.update(tags)
+
+    for initials, region in regions.iteritems():
+        check_region(region)
+        print ""
+
+    for key, base in bases.iteritems():
+        check_base(base)
+
+    print ""
+    for key, upgrade in upgrades.iteritems():
+        check_upgrade(upgrade)
+
+    print ""
+    # effects
+    for key, effect in effects.iteritems():
+        check_effect(effect)
+
+def prompt(flag, message, error_prompt):
+    attr = []
+    if (flag):
+        attr.append('32')   # green
+        stdout.write('\x1b[%sm%s\x1b[0m' % (';'.join(attr), "[correct] "))
+        stdout.write(message)
+        stdout.write("\n")
+    else:
+        attr.append('31')   # red
+        stderr.write('\x1b[%sm%s\x1b[0m' % (';'.join(attr), "[warning] "))
+        stderr.write(message)
+        stderr.write("\n")
+        stderr.write('\x1b[%sm%s\x1b[0m' % (';'.join(attr), "[details] "))
+        stderr.write(error_prompt)
+        stderr.write("\n")
+
+def is_number(s):
+    try:
+        float(s) # for int, long and float
+    except ValueError:
+        return False
+    return True
+
+def is_int(s):
+    try:
+        int(s) # for int
+    except ValueError:
+        return False
+    return True
+
+def check_keywords(iterable, dictionary):
+    # generic keyword checker
+    def checker(message):
+        flag = True
+        incorrects = []
+        # iterate through list
+        if isinstance(iterable, list):
+            for item in iterable:
+                if isinstance(item, str):
+                    item = item.strip()
+                if item:
+                    if item not in dictionary:
+                        incorrects.append(item)
+                        flag = False
+            prompt(flag, message, str(incorrects))
+        # iterate through dictionary
+        elif isinstance(iterable, dict):
+            for key, value in iterable.iteritems():
+                if isinstance(key, str):
+                    key = key.strip()
+                if key:
+                    if key not in dictionary:
+                        incorrects.append(key)
+                        flag = False
+            prompt(flag, message, str(incorrects))
+        else:
+            raise
+    return checker
+
+def check_effect(effect):
+    # check target
+    check_targets = check_keywords(effect.targets, targets)
+    check_targets("Checking keywords in %s target" % effect.id)
+
+    # check score of the effect
+    flag = False if str(effect.key) not in keys else True
+    prompt(flag, "Checking keywords in %s score" % effect.id, str(effect.key))
+
+# def check_cost(cost):
+#     if cost is None:
+#         return
+#     # check score of the effect
+#     for key, value in cost.info.iteritems():
+#         flag = False if str(key) not in keys else True
+#         prompt(flag, "Checking keywords in %s score" % cost.id, str(key))
+
+def check_prereqs(node):
+    pass
+    # only available for events and upgrades
+    # for prereq in node.prereqs:
+    #     trace = []
+    #     # score
+    #     if prereq.type == "score":
+    #         continue
+
+def check_region(region):
+    # initial values
+    check_initial_values = check_keywords(region.initial_values, keys)
+    check_initial_values("Checking keywords in %s initial values" % region.initials)
+
+    # check bases
+    check_bases = check_keywords(region.bases, bases)
+    check_bases("Checking keywords in %s bases" % region.initials)
+    for key, attribs in region.bases.iteritems():
+        if not is_int(attribs['state']):
+            prompt(False, "Base %s's state is not a number" % key, "state: " + attribs['state'])
+        if not is_number(attribs['x']):
+            prompt(False, "Base %s's location x is not a number" % key, "x: " + attribs['x'])
+        if not is_number(attribs['y']):
+            prompt(False, "Base %s's location y is not a number" % key, "y: " + attribs['y'])
+        if not is_number(attribs['multiplier']):
+            prompt(False, "Base %s's location multiplier is not a number" % key, "multiplier: " + attribs['multiplier'])
+        for score, amount, in attribs["impacts"].iteritems():
+            if not is_number(amount):
+                prompt(False, "Base %s's impact %s is not a number" % (key, score), score + ": " + amount)
+
+    # check events
+    check_events = check_keywords(region.events, events)
+    check_events("Checking keywords in %s events" % region.initials)
+    for key, attribs in region.events.iteritems():
+        if not is_number(attribs['x']):
+            prompt(False, "Event %s's location x is not a number" % key, "x: " + attribs['x'])
+        if not is_number(attribs['y']):
+            prompt(False, "Event %s's location y is not a number" % key, "y: " + attribs['y'])
+    
+    # tags
+    check_tags = check_keywords(region.tags, tags)
+    check_tags("Checking keywords in %s tags" % region.initials)
+
+def check_base(base):
+    # tags
+    check_tags = check_keywords(base.tags, tags)
+    check_tags("Checking keywords in %s %s tags" % (base.key, base.title))
+
+    # upgrades initial state
+    for key, upgrade in base.upgrades.iteritems():
+        if not is_int(upgrade["state"]):
+            prompt(False, "Upgrades %s's initial state is not a number" % upgrade.title, upgrade['state'])
+        else:
+            if int(upgrade["state"]) < 0:
+                prompt(False, "Upgrades %s's initial state is below 0" % upgrade.title, upgrade['state'])
+
+
+def check_upgrade(upgrade):
+    # check key and order consistency
+    dash_index = upgrade.key.find("-")
+    if dash_index == -1:
+        prompt(False, "Upgrades %s's key does not agree with the general format U?-?" % upgrade.title, upgrade.key)
+    else:
+        base = upgrade.key[1:dash_index]
+        _base = upgrade.get("base")[1:]
+        if not is_int(base):
+            prompt(False, "Upgrades %s's key is potentially corrupt" % upgrade.title, upgrade.key)
+        elif not is_int(_base):
+            prompt(False, "Upgrades %s's base is potentially corrupt" % upgrade.title, _base)
+        else:
+            if int(base) != int(_base):
+                prompt(False, "Upgrades %s's base does not agree with the key, potentially corrupt" % upgrade.title, "base: " + _base + "\t key: " + upgrade.key)
+
+    build_time = upgrade.get("build_time")
+    if not is_number(build_time) or float(build_time) < 0:
+        prompt(False, "Upgrades %s's build time is potentially corrupt" % upgrade.title, build_time)
+
+    levels = upgrade.get("levels")
+    if not is_int(levels) or int(levels) < 0:
+        prompt(False, "Upgrades %s's levels is potentially corrupt" % upgrade.title, levels)
+
+    cost_multiplier = upgrade.get("cost_multiplier")
+    if not is_number(cost_multiplier) or float(cost_multiplier) < 0:
+        prompt(False, "Upgrades %s's cost multiplier is potentially corrupt" % upgrade.title, cost_multiplier)
+
+    effect_multiplier = upgrade.get("effect_multiplier")
+    if not is_number(effect_multiplier) or float(effect_multiplier) < 0:
+        prompt(False, "Upgrades %s's effect multiplier is potentially corrupt" % upgrade.title, effect_multiplier)
+
+    check_prereqs(upgrade)
+
+    # costs
+    # check_cost(upgrade.costs)
+
+    # tags
+    check_tags = check_keywords(upgrade.tags, tags)
+    check_tags("Checking keywords in %s %s tags" % (upgrade.key, upgrade.title))
+
+#######################################################################
+#                            main function                            #
+#######################################################################
+if __name__ == '__main__':
+    # set up username or use the default account
+    if len(sys.argv) >= 2:
+        username = sys.argv[1]
+    else:
+        username = "skysource.tony@gmail.com"
+
+    # set up GoogleSpreadSheetReader
+    reader = SpreadsheetReader(username, "EnvironNodesInfo (Matt and Peter).gsheet")
+    feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
+    
+    print "Here are the worksheets available"
+    for key, value in feeds.iteritems():
+        print key, " => ", value
+
+    init_keys(reader, feeds['Keys'])
+    init_tags(reader, feeds['Tags'])
+    init_regions(reader, feeds['Regions'])
+    init_bases(reader, feeds['Bases'])
+    init_upgrades(reader, feeds['Upgrades'])
+    init_events(reader, feeds['Events'])
+
+    semantic_check()
+    generate_xml()
