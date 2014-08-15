@@ -14,6 +14,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
 from sys import stdout, stderr
+from collections import deque
 
 #######################################################################
 #                          global variables                           #
@@ -30,6 +31,7 @@ costs = dict()
 effects = dict()
 
 targets = dict()
+nodes = dict()
 
 #######################################################################
 #                    spreadsheet data manipulation                    #
@@ -792,19 +794,28 @@ def semantic_check():
     targets.update(upgrades)
     targets.update(events)
     targets.update(tags)
+    targets.update(keys)
+
+    nodes.update(bases)
+    nodes.update(events)
+    nodes.update(upgrades)
 
     for initials, region in regions.iteritems():
         check_region(region)
-        print ""
+    print ""
 
     for key, base in bases.iteritems():
         check_base(base)
-
     print ""
+
     for key, upgrade in upgrades.iteritems():
         check_upgrade(upgrade)
-
     print ""
+
+    for key, event in events.iteritems():
+        check_event(event)
+    print ""
+
     # effects
     for key, effect in effects.iteritems():
         check_effect(effect)
@@ -885,16 +896,39 @@ def check_effect(effect):
 #         flag = False if str(key) not in keys else True
 #         prompt(flag, "Checking keywords in %s score" % cost.id, str(key))
 
-def check_prereqs(node):
-    pass
-    # only available for events and upgrades
-    # for prereq in node.prereqs:
-    #     trace = []
-    #     # score
-    #     if prereq.type == "score":
-    #         continue
+def check_prereqs(node, path = deque([])):
+    for prereq in node.prereqs:
+        # score
+        if prereq.type == "score":
+            continue
+        # node/tags
+        key = prereq.key
+        # check keywords
+        if key not in targets:
+            prompt(False, "Checking Prerequisite, not found key in targets", key)
+        # ignore tags
+        if key not in nodes:
+            continue
+
+        # detect a loop
+        if key in path:
+            path.append(key)
+            prompt(False, "Checking Prerequisite, found loop", str(list(path)))
+            path.pop()
+            return False
+
+        # good so far, keep going
+        next_node = nodes[key]
+        path.append(key)
+        result = check_prereqs(next_node, path)
+        path.pop()
+        if not result:
+            return False
+
+    return True
 
 def check_region(region):
+    print "Checking Region %s" % region.initials
     # initial values
     check_initial_values = check_keywords(region.initial_values, keys)
     check_initial_values("Checking keywords in %s initial values" % region.initials)
@@ -927,8 +961,10 @@ def check_region(region):
     # tags
     check_tags = check_keywords(region.tags, tags)
     check_tags("Checking keywords in %s tags" % region.initials)
+    print ""
 
 def check_base(base):
+    print "Checking Base [%s] %s" % (base.key, base.title)
     # tags
     check_tags = check_keywords(base.tags, tags)
     check_tags("Checking keywords in %s %s tags" % (base.key, base.title))
@@ -940,9 +976,11 @@ def check_base(base):
         else:
             if int(upgrade["state"]) < 0:
                 prompt(False, "Upgrades %s's initial state is below 0" % upgrade.title, upgrade['state'])
+    print ""
 
 
 def check_upgrade(upgrade):
+    print "Checking Upgrade [%s] %s" % (upgrade.key, upgrade.title)
     # check key and order consistency
     dash_index = upgrade.key.find("-")
     if dash_index == -1:
@@ -982,6 +1020,32 @@ def check_upgrade(upgrade):
     # tags
     check_tags = check_keywords(upgrade.tags, tags)
     check_tags("Checking keywords in %s %s tags" % (upgrade.key, upgrade.title))
+
+    print ""
+
+def check_event(event):
+    print "Checking Event [%s] %s" % (event.key, event.title)
+
+    if not is_number(event.get("duration")):
+        prompt(False, "Event %s's duration is not a number" % key, "duration: " + event.get("duration"))
+
+    scope = event.get("scope")
+    if scope is not "R" and scope is not "G":
+        prompt(False, "Event %s's scope should be either G or R" % key, "scope: " + event.get("scope"))
+
+    check_prereqs(event)
+
+    # probabilities
+    probabilities = []
+    for p in event.probabilities:
+        probabilities.extend(p.items.keys())
+    check_probabilities = check_keywords(probabilities, targets)
+    check_probabilities("Checking keywords in %s %s probabilities" % (event.key, event.title))
+
+    # tags
+    check_tags = check_keywords(event.tags, tags)
+    check_tags("Checking keywords in %s %s tags" % (event.key, event.title))
+    print ""
 
 #######################################################################
 #                            main function                            #
