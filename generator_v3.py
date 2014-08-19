@@ -44,6 +44,14 @@ def get_spreadsheet_data(entry, tag):
         print "[Error]", tag, "has not been found in the entry"
     return None
 
+def strcat(str1, str2):
+    ret = ""
+    if str1 is not None:
+        ret += str1
+    if str2 is not None:
+        ret += "\n" + str2
+    return ret
+
 #######################################################################
 #                          utility functions                          #
 #######################################################################
@@ -682,7 +690,7 @@ def init_upgrades(reader, feed):
         if key is not None:
             upgrade = Upgrade(key, get_spreadsheet_data(entry, "title"))
             upgrade.set("order", get_spreadsheet_data(entry, "order"))
-            upgrade.set("description", get_spreadsheet_data(entry, "description"))
+            upgrade.set("description", strcat(get_spreadsheet_data(entry, "description"), get_spreadsheet_data(entry, "effectsdescription")))
             upgrade.set("image", get_spreadsheet_data(entry, "image"))
             upgrade.set("model", get_spreadsheet_data(entry, "model"))
             upgrade.set("icon", get_spreadsheet_data(entry, "icon"))
@@ -704,7 +712,7 @@ def init_events(reader, feed):
         key = get_spreadsheet_data(entry, "key")
         if key is not None:
             event = Event(key, get_spreadsheet_data(entry, "title"))
-            event.set("description", get_spreadsheet_data(entry, "description"))
+            event.set("description", strcat(get_spreadsheet_data(entry, "description"), get_spreadsheet_data(entry, "effectsdescription")))
             event.set("image", get_spreadsheet_data(entry, "image"))
             event.set("model", get_spreadsheet_data(entry, "model"))
             event.set("reference", get_spreadsheet_data(entry, "reference"))
