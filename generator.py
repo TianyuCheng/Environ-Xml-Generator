@@ -734,6 +734,11 @@ def init_events(reader, feed):
 #                              Generator                              #
 #######################################################################
 def generate_xml():
+    # check directory
+    directory = "./xmls"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     root_tags = Element("tags")
     for key, value in sorted(tags.iteritems(), key = lambda x: int(x[1].key[1:])):
     # for key, value in tags.iteritems():
