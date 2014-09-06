@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # append current path to syspath
-import os, sys, re
+import os, sys, re, getopt
 lib_path = os.path.abspath('./utils')
 sys.path.append(lib_path)
 
@@ -34,6 +34,29 @@ targets = dict()
 nodes = dict()
 
 #######################################################################
+#                            Configuration                            #
+#######################################################################
+verbose = False
+username = "skysource.tony@gmail.com"
+
+def parse_args():
+    global verbose
+    global username
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"hvu:", ["help", "username=", "verbose"])
+    except getopt.GetoptError:
+        print 'generator.py --username=<username> [--verbose]'
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            print 'generator.py --username=<username> [--verbose]'
+            sys.exit()
+        elif opt in ("-u", "--username"):
+            username = arg
+        elif opt in ("-v", "--verbose"):
+            verbose = True
+
+#######################################################################
 #                    spreadsheet data manipulation                    #
 #######################################################################
 def get_spreadsheet_data(entry, tag):
@@ -43,14 +66,6 @@ def get_spreadsheet_data(entry, tag):
     except KeyError:
         print "[Error]", tag, "has not been found in the entry"
     return None
-
-def strcat(str1, str2):
-    ret = ""
-    if str1 is not None:
-        ret += str1
-    if str2 is not None:
-        ret += "\n" + str2
-    return ret
 
 #######################################################################
 #                          utility functions                          #
@@ -804,9 +819,10 @@ def generate_xml():
 #                          semantic checker                           #
 #######################################################################
 def semantic_check():
-    print "========================="
-    print "... Semantic Checking ..."
-    print "========================="
+    if verbose:
+        print "========================="
+        print "... Semantic Checking ..."
+        print "========================="
 
     # combine all available targets
     targets.update(bases)
@@ -821,19 +837,23 @@ def semantic_check():
 
     for initials, region in regions.iteritems():
         check_region(region)
-    print ""
+    if verbose:
+        print ""
 
     for key, base in bases.iteritems():
         check_base(base)
-    print ""
+    if verbose:
+        print ""
 
     for key, upgrade in upgrades.iteritems():
         check_upgrade(upgrade)
-    print ""
+    if verbose:
+        print ""
 
     for key, event in events.iteritems():
         check_event(event)
-    print ""
+    if verbose:
+        print ""
 
     # effects
     for key, effect in effects.iteritems():
@@ -841,11 +861,12 @@ def semantic_check():
 
 def prompt(flag, message, error_prompt):
     attr = []
-    if (flag):
-        attr.append('32')   # green
-        stdout.write('\x1b[%sm%s\x1b[0m' % (';'.join(attr), "[correct] "))
-        stdout.write(message)
-        stdout.write("\n")
+    if flag:
+        if verbose: # print only in verbose mode
+            attr.append('32')   # green
+            stdout.write('\x1b[%sm%s\x1b[0m' % (';'.join(attr), "[correct] "))
+            stdout.write(message)
+            stdout.write("\n")
     else:
         attr.append('31')   # red
         stderr.write('\x1b[%sm%s\x1b[0m' % (';'.join(attr), "[warning] "))
@@ -947,7 +968,8 @@ def check_prereqs(node, path = deque([])):
     return True
 
 def check_region(region):
-    print "Checking Region %s" % region.initials
+    if verbose:
+        print "Checking Region %s" % region.initials
     # initial values
     check_initial_values = check_keywords(region.initial_values, keys)
     check_initial_values("Checking keywords in %s initial values" % region.initials)
@@ -980,10 +1002,13 @@ def check_region(region):
     # tags
     check_tags = check_keywords(region.tags, tags)
     check_tags("Checking keywords in %s tags" % region.initials)
-    print ""
+
+    if verbose:
+        print ""
 
 def check_base(base):
-    print "Checking Base [%s] %s" % (base.key, base.title)
+    if verbose:
+        print "Checking Base [%s] %s" % (base.key, base.title)
     # tags
     check_tags = check_keywords(base.tags, tags)
     check_tags("Checking keywords in %s %s tags" % (base.key, base.title))
@@ -995,11 +1020,13 @@ def check_base(base):
         else:
             if int(upgrade["state"]) < 0:
                 prompt(False, "Upgrades %s's initial state is below 0" % upgrade.title, upgrade['state'])
-    print ""
+    if verbose:
+        print ""
 
 
 def check_upgrade(upgrade):
-    print "Checking Upgrade [%s] %s" % (upgrade.key, upgrade.title)
+    if verbose:
+        print "Checking Upgrade [%s] %s" % (upgrade.key, upgrade.title)
     # check key and order consistency
     dash_index = upgrade.key.find("-")
     if dash_index == -1:
@@ -1040,10 +1067,12 @@ def check_upgrade(upgrade):
     check_tags = check_keywords(upgrade.tags, tags)
     check_tags("Checking keywords in %s %s tags" % (upgrade.key, upgrade.title))
 
-    print ""
+    if verbose:
+        print ""
 
 def check_event(event):
-    print "Checking Event [%s] %s" % (event.key, event.title)
+    if verbose:
+        print "Checking Event [%s] %s" % (event.key, event.title)
 
     if not is_number(event.get("duration")):
         prompt(False, "Event %s's duration is not a number" % key, "duration: " + event.get("duration"))
@@ -1064,25 +1093,25 @@ def check_event(event):
     # tags
     check_tags = check_keywords(event.tags, tags)
     check_tags("Checking keywords in %s %s tags" % (event.key, event.title))
-    print ""
+
+    if verbose:
+        print ""
 
 #######################################################################
 #                            main function                            #
 #######################################################################
 if __name__ == '__main__':
     # set up username or use the default account
-    if len(sys.argv) >= 2:
-        username = sys.argv[1]
-    else:
-        username = "skysource.tony@gmail.com"
+    parse_args()
 
     # set up GoogleSpreadSheetReader
     reader = SpreadsheetReader(username, "EnvironNodesInfo (Matt and Peter).gsheet")
     feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
     
-    print "Here are the worksheets available"
-    for key, value in feeds.iteritems():
-        print key, " => ", value
+    if verbose:
+        print "Here are the worksheets available"
+        for key, value in feeds.iteritems():
+            print key, " => ", value
 
     init_keys(reader, feeds['Keys'])
     init_tags(reader, feeds['Tags'])

@@ -5,7 +5,8 @@ A xml generator pulling information from Google Spreadsheet for Project Environ
 
 Usage
 -----
-	python generator.py [gmail account name | OPTIONAL] to generate xmls
+  python generator.py --username=<username> [--verbose]
+  python generator.py --help
 
 Files
 -----
