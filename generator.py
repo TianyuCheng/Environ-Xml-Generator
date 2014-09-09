@@ -831,13 +831,14 @@ def generate_json():
     # generate each region's children events and bases
     json_regions = json_root["regions"]
     for initials, region in regions.iteritems():
-        region_bases = list()
-        region_events = list()
-        for base in region.bases.iterkeys():
-            region_bases.append(base)
-        for event in region.events.iterkeys():
-            region_events.append(event)
-        json_regions[region.initials] = {"bases": region_bases, "events": region_events};
+        # region_bases = list()
+        # region_events = list()
+        # for base in region.bases.iterkeys():
+        #     region_bases.append(base)
+        # for event in region.events.iterkeys():
+        #     region_events.append(event)
+        # json_regions[initials] = {"bases": region_bases, "events": region_events};
+        json_regions[initials] =  {"bases": region.bases, "events": region.events};
 
     json_bases = json_root["bases"]
     for key, base in bases.iteritems():

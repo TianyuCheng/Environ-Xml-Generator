@@ -3,9 +3,36 @@
 <head>
   <title>XML Generator - Map Editor</title>
   <meta charset="utf-8" />
+  <link rel="stylesheet" href="/web/css/style.css" type="text/css" media="all" />
 </head>
 <body>
-  <h1>Welcome to the Map Editor</h1>
+
+  <div id="map"> 
+    <!-- image display -->
+    <div id="image-wrapper">
+      <img align="middle" src="/web/res/coordinateMap.jpg"/>
+    </div> <!-- end of image display -->
+
+    <!-- -->
+
+  </div> <!-- end of map -->
 
 </body>
+
+<!-- include google hosted jquery -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script>
+$.getJSON("data.json", function(data) {
+
+  $.each(data, function(key, val) {
+    // items.push( "<li id='" + key + "'>" + val + "</li>" );
+    if (key === "events")
+      console.log (val)
+    if (key === "bases")
+      console.log (val)
+  });
+
+});
+</script>
+
 </html>
