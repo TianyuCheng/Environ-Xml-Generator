@@ -828,8 +828,9 @@ def generate_json():
     json_root["events"] = dict()
     json_root["bases"] = dict()
 
+    # generate each region's children events and bases
     json_regions = json_root["regions"]
-    for region in regions:
+    for initials, region in regions.iteritems():
         region_bases = list()
         region_events = list()
         for base in region.bases.iterkeys():
@@ -838,7 +839,17 @@ def generate_json():
             region_events.append(event)
         json_regions[region.initials] = {"bases": region_bases, "events": region_events};
 
-    print dumps(json_root)
+    json_bases = json_root["bases"]
+    for key, base in bases.iteritems():
+        json_bases[key] = base.title
+
+    json_events = json_root["events"]
+    for key, event in events.iteritems():
+        json_events[key] = event.title
+
+    with open('data.json', 'wt') as out:
+        res = dumps(json_root, sort_keys=True, indent=4, separators=(',', ': '))
+        out.write(res)
 
 #######################################################################
 #                          semantic checker                           #
