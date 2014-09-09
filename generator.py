@@ -13,6 +13,10 @@ from re import compile
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
+# import json utils
+from json import dumps
+
+# import console printing commands
 from sys import stdout, stderr
 from collections import deque
 
@@ -32,6 +36,9 @@ effects = dict()
 
 targets = dict()
 nodes = dict()
+
+# json export variables
+json_root = dict()
 
 #######################################################################
 #                    spreadsheet data manipulation                    #
@@ -789,6 +796,24 @@ def generate_xml():
     with open('xmls/upgrades.xml', 'w') as f:
         f.write(prettify(root_upgrades).encode("utf-8"))
 
+def generate_json():
+    # generate json for html tool
+    json_root["regions"] = dict()
+    json_root["events"] = dict()
+    json_root["bases"] = dict()
+
+    json_regions = json_root["regions"]
+    for region in regions:
+        region_bases = list()
+        region_events = list()
+        for base in region.bases.iterkeys():
+            region_bases.append(base)
+        for event in region.events.iterkeys():
+            region_events.append(event)
+        json_regions[region.initials] = {"bases": region_bases, "events": region_events};
+
+    print dumps(json_root)
+
 #######################################################################
 #                          semantic checker                           #
 #######################################################################
@@ -1082,3 +1107,4 @@ if __name__ == '__main__':
 
     semantic_check()
     generate_xml()
+    generate_json()
