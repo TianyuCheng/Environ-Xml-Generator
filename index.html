@@ -1,38 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="MapEditor">
 <head>
   <title>XML Generator - Map Editor</title>
   <meta charset="utf-8" />
   <link rel="stylesheet" href="/web/css/style.css" type="text/css" media="all" />
 </head>
-<body>
+
+<body ng-controller="MapEditorController">
 
   <div id="map"> 
     <!-- image display -->
     <div id="image-wrapper">
-      <img align="middle" src="/web/res/coordinateMap.jpg"/>
+      <svg id="svg-map" ng-mousemove="showCoordinate($event)">
+        <image xlink:href="/web/res/coordinateMap.jpg" x="0" y="0" width="2000px" height="1160px"/>
+      </svg>
     </div> <!-- end of image display -->
-
-    <!-- -->
-
   </div> <!-- end of map -->
 
 </body>
 
 <!-- include google hosted jquery -->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script>
-$.getJSON("data.json", function(data) {
-
-  $.each(data, function(key, val) {
-    // items.push( "<li id='" + key + "'>" + val + "</li>" );
-    if (key === "events")
-      console.log (val)
-    if (key === "bases")
-      console.log (val)
-  });
-
-});
-</script>
+<script src="/web/js/angular/angular.min.js"></script>
+<script src="/web/js/angular/angular-route.min.js"></script>
+<script src="/web/js/raphael/raphael-min.js"></script>
+<script src="/web/js/map-editor.js"></script>
+<!-- <script> -->
+<!-- $.getJSON("data.json", function(data) { -->
+<!--  -->
+<!--   $.each(data, function(key, val) { -->
+<!--     // items.push( "<li id='" + key + "'>" + val + "</li>" ); -->
+<!--     if (key === "events") -->
+<!--       console.log (val) -->
+<!--     if (key === "bases") -->
+<!--       console.log (val) -->
+<!--   }); -->
+<!--  -->
+<!-- }); -->
+<!-- </script> -->
 
 </html>

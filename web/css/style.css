@@ -3,6 +3,7 @@
 body {
   margin: 0;
   padding: 0; 
+  background: #000;
 }
 
 #map {
@@ -11,9 +12,15 @@ body {
   margin: 0;
 }
 
+#svg-map {
+  display:block; 
+  width: 2000px;
+  height: 1160px;
+}
+
 #image-wrapper {
   width: 2000px;
-  height: 1159px;
+  height: 1160px;
   margin-left: auto;
   margin-right: auto;
 }
