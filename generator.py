@@ -20,6 +20,9 @@ from json import dumps
 from sys import stdout, stderr
 from collections import deque
 
+# import debug tools
+import traceback
+
 #######################################################################
 #                          global variables                           #
 #######################################################################
@@ -71,7 +74,10 @@ def get_spreadsheet_data(entry, tag):
         entry = entry.custom[tag]
         return entry.text if entry is not None else None
     except KeyError:
-        print "[Error]", tag, "has not been found in the entry"
+        print "[Error]", "<%s>" % tag, "has not been found in the entry"
+        print "An error occured in", "[%s]" % str(traceback.extract_stack(limit=2)[-2][2])
+        print "Exit abnormally"
+        sys.exit(-1)
     return None
 
 #######################################################################
