@@ -394,6 +394,7 @@ class Upgrade(Info):
         create_subselement(node, "icon", self.get("icon"))
         create_subselement(node, "reference", self.get("reference"))
         create_subselement(node, "build_time", self.get("build_time"))
+        create_subselement(node, "effects_duration", self.get("effects_duration"))
 
         create_subselement(node, "levels", self.get("levels"))
         multipliers_node = SubElement(node, "multipliers")
@@ -646,7 +647,7 @@ class Effect(object):
 
     def __str__(self):
         ret = ""
-        for target in targets:
+        for target in self.targets:
             ret += target + "&"
         return ret[:-1] + "=>(%s, %s)" % (self.duration, self.amount)
         # return str(self.targets) + "|" + self.key + "|" + str(self.duration) + "|" + str(self.amount)
@@ -728,6 +729,7 @@ def init_upgrades(reader, feed):
             upgrade.set("icon", get_spreadsheet_data(entry, "icon"))
             upgrade.set("reference", get_spreadsheet_data(entry, "reference"))
             upgrade.set("build_time", get_spreadsheet_data(entry, "buildtime"))
+            upgrade.set("effects_duration", get_spreadsheet_data(entry, "effectsduration"))
             upgrade.set("levels", get_spreadsheet_data(entry, "levels"))
             upgrade.set("cost_multiplier", get_spreadsheet_data(entry, "costmultiplier"))
             upgrade.set("effect_multiplier", get_spreadsheet_data(entry, "effectmultiplier"))
@@ -924,7 +926,7 @@ def prompt(flag, message, error_prompt):
 
 def is_number(s):
     try:
-        float(s) # for int, long and float
+        float(s.strip("%")) # for int, long and float
     except ValueError:
         return False
     return True
@@ -973,6 +975,9 @@ def check_effect(effect):
     # check score of the effect
     flag = False if str(effect.key) not in keys else True
     prompt(flag, "Checking keywords in %s score" % effect.id, str(effect.key))
+
+    flag = False if not is_number(effect.amount) else True
+    prompt(flag, "Checking validity of effects duration of effect %s" % effect.id, str(effect.key) + "|" + str(effect))
 
     flag = False if not is_number(effect.duration) else True
     prompt(flag, "Checking validity of effects duration duration of effect %s" % effect.id, str(effect.key))
@@ -1100,6 +1105,10 @@ def check_upgrade(upgrade):
     if not is_number(build_time) or float(build_time) < 0:
         prompt(False, "Upgrades %s's build time is potentially corrupt" % upgrade.title, build_time)
 
+    effects_duration = upgrade.get("effects_duration")
+    if not is_number(effects_duration) or float(effects_duration) < 0:
+        prompt(False, "Upgrades %s's effects duration is potentially corrupt" % upgrade.title, effects_duration)
+
     levels = upgrade.get("levels")
     if not is_int(levels) or int(levels) < 0:
         prompt(False, "Upgrades %s's levels is potentially corrupt" % upgrade.title, levels)
@@ -1133,11 +1142,11 @@ def check_event(event):
         print "Checking Event [%s] %s" % (event.key, event.title)
 
     if not is_number(event.get("duration")):
-        prompt(False, "Event %s's duration is not a number" % key, "duration: " + event.get("duration"))
+        prompt(False, "Event %s's duration is not a number" % event.key, "duration: " + event.get("duration"))
 
     scope = event.get("scope")
     if scope is not "R" and scope is not "G":
-        prompt(False, "Event %s's scope should be either G or R" % key, "scope: " + event.get("scope"))
+        prompt(False, "Event %s's scope should be either G or R" % event.key, "scope: " + event.get("scope"))
 
     check_prereqs(event)
 
