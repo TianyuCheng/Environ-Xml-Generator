@@ -104,6 +104,7 @@ class Info(object):
 
     def __init__(self):
         self.info = dict()
+        self.effects = []
 
     def set(self, key, value):
         if key is None:
@@ -151,17 +152,17 @@ class Info(object):
         self.costs = Cost(costs)
         # print self.costs
 
-    def set_effects(self, effects):
+    def set_effects(self, effects, duration):
 
-        self.effects = []
-
-        if effects is None:
+        if effects is None or effects is "":
             return
 
         groups = compile("\s*").split(effects.strip())
         for group in groups:
-            fx = Effect(group)
-            self.effects.append(fx)
+            group = group.strip()
+            if group is not "" and group is not None:
+                fx = Effect(group, duration)
+                self.effects.append(fx)
             # print fx.id, ">>>", group
         # print '====>'
 
@@ -609,30 +610,25 @@ class Cost(Info):
 
 class Effect(object):
 
-    def __init__(self, effect):
+    def __init__(self, effect, duration):
         super(Effect, self).__init__()
-        # print effect
+        self.__parse__(effect, duration)
+        self.__save__()
+
+    def __parse__(self, effect, duration):
         pairs = compile("(\S+?=>)?(\S+?)\((\S+?)\)").findall(effect)
-        if len(pairs) > 1:
+        if len(pairs) > 1 or len(pairs) == 0:
             print "Input for more than one pair"
-            raise
             print "Not able to parse effect"
+            print "effects input:", effect
             raise
         pairs = pairs[0]
         # factor(...)
         # print pairs[0], "=>",  pairs[1]
         self.targets = pairs[0][:-2].split("&")
         self.key = pairs[1]
-        params = pairs[2].split(",")
-        if len(params) == 1:
-            self.duration = "0"
-            self.amount = params[0]
-        elif len(params) == 2:
-            self.duration = params[0]
-            self.amount = params[1]
-        else:
-            print "Effect format error"
-        self.__save__()
+        self.amount = pairs[2]
+        self.duration = duration
 
     def __save__(self):
         key = str(self)
@@ -643,7 +639,11 @@ class Effect(object):
             effects[key] = self
 
     def __str__(self):
-        return str(self.targets) + "|" + self.key + "|" + str(self.duration) + "|" + str(self.amount)
+        ret = ""
+        for target in targets:
+            ret += target + "&"
+        return ret[:-1] + "=>(%s, %s)" % (self.duration, self.amount)
+        # return str(self.targets) + "|" + self.key + "|" + str(self.duration) + "|" + str(self.amount)
 
     def toXML(self):
         node = Element("effect")
@@ -686,7 +686,7 @@ def init_regions(reader, feed):
             region.set("description", get_spreadsheet_data(entry, "description"))
             region.set("image", get_spreadsheet_data(entry, "image"))
             region.set_initial_values(get_spreadsheet_data(entry, "initialvalues"))
-            region.set_effects(get_spreadsheet_data(entry, "uniquecondition"))
+            region.set_effects(get_spreadsheet_data(entry, "uniquecondition"), "0")
             region.set_bases(get_spreadsheet_data(entry, "bases"))
             region.set_events(get_spreadsheet_data(entry, "events"))
             region.set_tags(get_spreadsheet_data(entry, "tags"))
@@ -727,7 +727,8 @@ def init_upgrades(reader, feed):
             upgrade.set("effect_multiplier", get_spreadsheet_data(entry, "effectmultiplier"))
             upgrade.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             upgrade.set_costs(get_spreadsheet_data(entry, "costs"))
-            upgrade.set_effects(get_spreadsheet_data(entry, "effects"))
+            upgrade.set_effects(get_spreadsheet_data(entry, "immediateeffects"), "0")
+            upgrade.set_effects(get_spreadsheet_data(entry, "effectsovertime"), get_spreadsheet_data(entry, "effectsduration"))
             upgrade.set_base(get_spreadsheet_data(entry, "base"), get_spreadsheet_data(entry, "initialstate"))
             upgrade.set_tags(get_spreadsheet_data(entry, "tags"))
             upgrades[key] = upgrade
@@ -748,7 +749,9 @@ def init_events(reader, feed):
             event.set("scope", get_spreadsheet_data(entry, "scope"))
             event.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             event.set_probabilities(get_spreadsheet_data(entry, "probability"))
-            event.set_effects(get_spreadsheet_data(entry, "effects"))
+            # event.set_effects(get_spreadsheet_data(entry, "effects"))
+            event.set_effects(get_spreadsheet_data(entry, "immediateeffects"), "0")
+            event.set_effects(get_spreadsheet_data(entry, "effectsovertime"), get_spreadsheet_data(entry, "effectsduration"))
             event.set_tags(get_spreadsheet_data(entry, "tags"))
             events[key] = event
 
@@ -892,9 +895,9 @@ def semantic_check():
     if verbose:
         print ""
 
-    # effects
-    for key, effect in effects.iteritems():
-        check_effect(effect)
+    # # effects
+    # for key, effect in effects.iteritems():
+    #     check_effect(effect)
 
 def prompt(flag, message, error_prompt):
     attr = []
@@ -964,6 +967,10 @@ def check_effect(effect):
     # check score of the effect
     flag = False if str(effect.key) not in keys else True
     prompt(flag, "Checking keywords in %s score" % effect.id, str(effect.key))
+
+    flag = False if not is_number(effect.duration) else True
+    prompt(flag, "Checking validity of effects duration duration of effect %s" % effect.id, str(effect.key))
+
 
 # def check_cost(cost):
 #     if cost is None:
@@ -1040,6 +1047,10 @@ def check_region(region):
     check_tags = check_keywords(region.tags, tags)
     check_tags("Checking keywords in %s tags" % region.initials)
 
+    # unique conditions
+    for effect in region.effects:
+        check_effect(effect)
+
     if verbose:
         print ""
 
@@ -1097,6 +1108,10 @@ def check_upgrade(upgrade):
 
     check_prereqs(upgrade)
 
+    # effects
+    for effect in upgrade.effects:
+        check_effect(effect)
+
     # costs
     # check_cost(upgrade.costs)
 
@@ -1126,6 +1141,10 @@ def check_event(event):
         probabilities.extend(p.items.keys())
     check_probabilities = check_keywords(probabilities, targets)
     check_probabilities("Checking keywords in %s %s probabilities" % (event.key, event.title))
+
+    # effects
+    for effect in event.effects:
+        check_effect(effect)
 
     # tags
     check_tags = check_keywords(event.tags, tags)
