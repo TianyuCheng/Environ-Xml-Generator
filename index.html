@@ -15,10 +15,12 @@
       {{ coordinate.x }}, {{ coordinate.y }}
     </div>
 
-    <img class="nonselectable" src="/web/res/coordinateMap.jpg" x="0" y="0" width="2000px" height="1160px"/>
+    <div id="image-wrapper">
+      <img class="nonselectable" src="/web/res/coordinateMap.jpg" x="0" y="0" width="2000px" height="1160px"/>
+    </div>
 
     <!-- image display -->
-    <div id="image-wrapper">
+    <div id="svg-wrapper">
       <div id="svg-map" ng-mousemove="showCoordinate($event)" ng-click="addStuff($event)">
       </div>
     </div> <!-- end of image display -->
