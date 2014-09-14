@@ -6,6 +6,16 @@ body {
   background: #000;
 }
 
+.nonselectable {
+  cursor: default;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 #map {
   display: block;
   width: 100%;
@@ -18,9 +28,31 @@ body {
   height: 1160px;
 }
 
+#image-map {
+  display:block; 
+  width: 2000px;
+  height: 1160px;
+  z-index: -999;
+}
+
 #image-wrapper {
   width: 2000px;
   height: 1160px;
   margin-left: auto;
   margin-right: auto;
+  margin-top: -1160px;
+}
+
+#coordinate {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 150px;
+  height: 50px;
+  font-size: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid #fff;
+
+  text-align: center;
+  line-height: 50px;
 }

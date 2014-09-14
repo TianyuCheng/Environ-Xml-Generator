@@ -9,12 +9,20 @@
 <body ng-controller="MapEditorController">
 
   <div id="map"> 
+
+    <!-- floating coordinate -->
+    <div id="coordinate" class="nonselectable" ng-model="coordinate">
+      {{ coordinate.x }}, {{ coordinate.y }}
+    </div>
+
+    <img class="nonselectable" src="/web/res/coordinateMap.jpg" x="0" y="0" width="2000px" height="1160px"/>
+
     <!-- image display -->
     <div id="image-wrapper">
-      <svg id="svg-map" ng-mousemove="showCoordinate($event)">
-        <image xlink:href="/web/res/coordinateMap.jpg" x="0" y="0" width="2000px" height="1160px"/>
-      </svg>
+      <div id="svg-map" ng-mousemove="showCoordinate($event)" ng-click="addStuff($event)">
+      </div>
     </div> <!-- end of image display -->
+
   </div> <!-- end of map -->
 
 </body>
@@ -25,18 +33,5 @@
 <script src="/web/js/angular/angular-route.min.js"></script>
 <script src="/web/js/raphael/raphael-min.js"></script>
 <script src="/web/js/map-editor.js"></script>
-<!-- <script> -->
-<!-- $.getJSON("data.json", function(data) { -->
-<!--  -->
-<!--   $.each(data, function(key, val) { -->
-<!--     // items.push( "<li id='" + key + "'>" + val + "</li>" ); -->
-<!--     if (key === "events") -->
-<!--       console.log (val) -->
-<!--     if (key === "bases") -->
-<!--       console.log (val) -->
-<!--   }); -->
-<!--  -->
-<!-- }); -->
-<!-- </script> -->
 
 </html>
