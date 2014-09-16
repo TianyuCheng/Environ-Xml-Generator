@@ -8,10 +8,8 @@ var MapEditor = angular.module('MapEditor', ['ngRoute']);
 var width = 2000;
 var height = 1160;
 var offsetX = 155;
-var offsetY = 135;
-
-var hRatio = (width - offsetX) / 360;
-var vRatio = (height - offsetY)  / 180;
+var hRatio = width / 360;
+var vRatio = height / 180;
 
 // ---{{{
   
@@ -24,7 +22,7 @@ var vRatio = (height - offsetY)  / 180;
 
   function real2map(x, y) {
     return {
-      "x": width - (x * hRatio),
+      "x": x * hRatio + offsetX,
       "y": y * vRatio
     }
   }
@@ -45,7 +43,7 @@ var vRatio = (height - offsetY)  / 180;
 
       // initialize the map with current data
       for (var regionKey in regions) {
-        // if (regionKey != "NA" || regionKey != "SA") continue;
+        if (regionKey != "NA") continue;
 
         var region = regions[regionKey];
 
