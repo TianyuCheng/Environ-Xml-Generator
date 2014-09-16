@@ -649,8 +649,7 @@ class Effect(object):
         ret = ""
         for target in self.targets:
             ret += target + "&"
-        return ret[:-1] + "=>(%s, %s)" % (self.duration, self.amount)
-        # return str(self.targets) + "|" + self.key + "|" + str(self.duration) + "|" + str(self.amount)
+        return ret[:-1] + "=>%s(%s, %s)" % (self.key, self.duration, self.amount)
 
     def toXML(self):
         node = Element("effect")
