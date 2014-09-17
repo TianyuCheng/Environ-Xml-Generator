@@ -29,6 +29,12 @@ var vRatio = (height - offsetY)  / 180;
     }
   }
 
+  document.oncontextmenu = function (e) {
+    if(e.target.hasAttribute('right-click')) {
+      return false;
+    }
+  };
+
   // loading data
   $(function(){
     $.getJSON("data.json", function(data) {
@@ -135,16 +141,20 @@ var vRatio = (height - offsetY)  / 180;
  *  angular.js  *
  ****************/
 // ---{{{
+  
+  // right click directive
   MapEditor.directive('ngRightClick', function($parse) {
-      return function(scope, element, attrs) {
-          var fn = $parse(attrs.ngRightClick);
-          element.bind('contextmenu', function(event) {
-              scope.$apply(function() {
-                  event.preventDefault();
-                  fn(scope, {$event:event});
-              });
-          });
-      };
+    return function(scope,element,attrs){
+      var fn = $parse(attrs.ngRightClick);
+      console.log (fn);
+      element.bind('contextmenu',function(event){
+        scope.$apply(function() {
+          event.preventDefault();
+          fn(scope, {$event: event});
+        });
+        return false;
+      }) ;
+    }
   });
   
   MapEditor.controller("MapEditorController", function($scope) {
@@ -158,9 +168,15 @@ var vRatio = (height - offsetY)  / 180;
     }
 
     // mouse click action
-    $scope.addStuff = function($event) {
+    $scope.addBase = function($event) {
       var base = new Base(raphael, "B1", "NA");
       base.setPosition($event.offsetX, $event.offsetY);
+    }
+
+    // mouse click action
+    $scope.addEvent = function($event) {
+      var event = new Event(raphael, "B1", "NA");
+      event.setPosition($event.offsetX, $event.offsetY);
     }
 
   });
