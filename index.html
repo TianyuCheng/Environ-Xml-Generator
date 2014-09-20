@@ -4,6 +4,7 @@
   <title>XML Generator - Map Editor</title>
   <meta charset="utf-8" />
   <link rel="stylesheet" href="/web/css/style.css" type="text/css" media="all" />
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css" media="all" />
 </head>
 
 <body ng-controller="MapEditorController">
@@ -13,6 +14,10 @@
     <!-- floating coordinate -->
     <div id="coordinate" class="nonselectable" ng-model="coordinate">
       {{ coordinate.x }}, {{ coordinate.y }}
+    </div>
+
+    <div id="settings-wrapper" class="nonselectable" ng-model="settings">
+      <img id="settings" src="/web/res/settings.png" width="50" height="50" ng-click="exports()"/>
     </div>
 
     <div id="image-wrapper">
@@ -26,6 +31,35 @@
     </div> <!-- end of image display -->
 
   </div> <!-- end of map -->
+
+  <div id="popup" style="display: none">
+    <div id="centerpoint">
+      <div id="dialog">
+        <div id="close" class="nonselectable">x</div>
+        <div id="region-select-div">
+          <h2>Please select a region</h2>
+          <select id="region-select"></select>
+        </div>
+
+        <div id="base-select-div">
+          <h2>Please select a base</h2>
+          <select id="base-select"></select>
+        </div>
+
+        <div id="event-select-div">
+          <h2>Please select an event</h2>
+          <select id="event-select"></select>
+        </div>
+
+        <div id="button-div">
+          <button id="save" class="pure-button-primary">Save It!</button>
+          <button id="delete" class="button-error pure-button">Delete This Point!</button>
+        </div>
+
+      </div>
+    <div>
+    <div id="overlay"></div>
+  </div>
 
 </body>
 
