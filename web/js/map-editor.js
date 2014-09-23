@@ -7,6 +7,9 @@ var MapEditor = angular.module('MapEditor', ['ngRoute']);
 // operation stack
 var stack = new Array();
 var current = null;
+// list for bases, events
+var all_bases = new Array();
+var all_events = new Array();
 
 var width = 2000;
 var height = 1160;
@@ -20,8 +23,8 @@ var vRatio = (height - offsetY)  / 180;
   
   function map2real(x, y) {
     return {
-      "x": (width - x) / hRatio,
-      "y": y / vRatio
+      "x": Math.round((width - x) / hRatio),
+      "y": Math.round(y / vRatio)
     };
   }
 
@@ -176,6 +179,7 @@ var vRatio = (height - offsetY)  / 180;
     }
 
     // setting attributes
+    this.coordinate = map2real(x, y);
     this.circle.attr({ "cx": x, "cy": y, "opacity": 0, "fill": this.color, "stroke": "#FFFFFF" });
     this.glow = this.circle.glow({ width: this.outerRadius, color: "#FFFFFF" });
     this.circle.animate(showAnim);
@@ -226,6 +230,7 @@ var vRatio = (height - offsetY)  / 180;
   function Base(graphics, title, region)
   {
     Node.call(this, graphics, title, region, "bases", baseColor, 10, 10);
+    all_bases.push(this);
   }
   Base.prototype = Object.create(Node.prototype);
   Base.prototype.constructor = Base;
@@ -234,6 +239,7 @@ var vRatio = (height - offsetY)  / 180;
   function Event(graphics, title, region)
   {
     Node.call(this, graphics, title, region, "events", eventColor, 10, 10);
+    all_events.push(this);
   }
   Event.prototype = Object.create(Node.prototype);
   Event.prototype.constructor = Event;
@@ -243,6 +249,12 @@ var vRatio = (height - offsetY)  / 180;
  *  angular.js  *
  ****************/
 // ---{{{
+
+  // output of map
+  MapEditor.directive('output', function($parse) {
+    return function(scoe, element, attrs) {
+    }
+  });
 
   // right click on map
   MapEditor.directive('ngRightClick', function($parse) {
@@ -261,6 +273,18 @@ var vRatio = (height - offsetY)  / 180;
   MapEditor.controller("MapEditorController", function($scope) {
 
     $scope.coordinate = { x: "0", y: "0" };
+
+    $scope.orders = [ "W", "NA", "SA", "EU", "AF", "CA", "EA" ];
+
+    $scope.output = {
+      "W":   { "bases": "", "events": "" },
+      "NA":  { "bases": "", "events": "" },
+      "SA":  { "bases": "", "events": "" },
+      "EU":  { "bases": "", "events": "" },
+      "AF":  { "bases": "", "events": "" },
+      "CA":  { "bases": "", "events": "" },
+      "EA":  { "bases": "", "events": "" },
+    };
 
     // mouse moving action
     $scope.showCoordinate = function($event) {
@@ -295,6 +319,60 @@ var vRatio = (height - offsetY)  / 180;
 
     $scope.exports = function() {
       console.log ("exporting data");
+      // reset all information
+      var info = {
+        "W":   { "bases": [], "events": []},
+        "NA":  { "bases": [], "events": []},
+        "SA":  { "bases": [], "events": []},
+        "EU":  { "bases": [], "events": []},
+        "AF":  { "bases": [], "events": []},
+        "CA":  { "bases": [], "events": []},
+        "EA":  { "bases": [], "events": []},
+      };
+      // going through all bases to put them into the right list
+      for (var i in all_bases) {
+        var base = all_bases[i];
+        if (base.region in info)
+          info[base.region].bases.push(base);
+      }
+      // going through all events to put them into the right list
+      for (var i in all_events) {
+        var event = all_events[i];
+        if (event.region in info)
+          info[event.region].events.push(event);
+      }
+      // // easy verfication
+      // console.log (info);
+      
+      $scope.output = {
+        "W":   {},
+        "NA":  {},
+        "SA":  {},
+        "EU":  {},
+        "AF":  {},
+        "CA":  {},
+        "EA":  {},
+      };
+      // now generate the output strings
+      for (var region in info) {
+        var details = info[region];
+        // generating all bases output strings
+        var base_output = "";
+        for (var i in details.bases) {
+          var base = details.bases[i];
+          base_output += base.title + "(0," + base.coordinate.x + "," + base.coordinate.y + ") ";
+        }
+        $scope.output[region]['bases'] = base_output;
+        // generating all events output strings
+        var event_output = "";
+        for (var i in details.events) {
+          var event = details.events[i];
+          event_output += event.title + "(" + event.coordinate.x + "," + event.coordinate.y + ") ";
+        }
+        $scope.output[region]['events'] = event_output;
+      }
+
+      console.log ($scope.output);
     }
 
   });

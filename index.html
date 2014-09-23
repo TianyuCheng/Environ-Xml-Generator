@@ -32,6 +32,23 @@
 
   </div> <!-- end of map -->
 
+  <div id="output" output>
+    <table align="center" border="1">
+      <tr>
+        <!-- <th>Region</th> -->
+        <th>Bases</th>
+        <th>Events</th>
+      </tr>
+      <tbody ng-repeat="item in orders">
+        <tr>
+          <!-- <td class="nonselectable">{{ item }}</td> -->
+          <td>{{ output[item].bases }}</td>
+          <td>{{ output[item].events }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <div id="popup" style="display: none">
     <div id="centerpoint">
       <div id="dialog">

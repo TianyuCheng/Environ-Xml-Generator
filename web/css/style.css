@@ -152,3 +152,19 @@ body {
   top: 20px;
   color: #FFFFFF; 
 }
+
+#output {
+  width: 100%;
+  height: 200px;
+}
+
+#output table {
+  background: white; 
+}
+
+#output table th,
+#output table td {
+  height: 30px;
+  width: 400px;
+  display: table-cell;
+}
