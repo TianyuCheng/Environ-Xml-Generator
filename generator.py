@@ -834,21 +834,8 @@ def generate_xml():
 
 def generate_json():
     # generate json for html tool
-    json_root["regions"] = dict()
     json_root["events"] = dict()
     json_root["bases"] = dict()
-
-    # generate each region's children events and bases
-    json_regions = json_root["regions"]
-    for initials, region in regions.iteritems():
-        # region_bases = list()
-        # region_events = list()
-        # for base in region.bases.iterkeys():
-        #     region_bases.append(base)
-        # for event in region.events.iterkeys():
-        #     region_events.append(event)
-        # json_regions[initials] = {"bases": region_bases, "events": region_events};
-        json_regions[initials] =  {"bases": region.bases, "events": region.events};
 
     json_bases = json_root["bases"]
     for key, base in bases.iteritems():
@@ -858,8 +845,17 @@ def generate_json():
     for key, event in events.iteritems():
         json_events[key] = event.title
 
-    with open('data.json', 'wt') as out:
+    with open('keys.json', 'wt') as out:
         res = dumps(json_root, sort_keys=True, indent=4, separators=(',', ': '))
+        out.write(res)
+
+    # generate each region's children events and bases
+    json_regions = dict()
+    for initials, region in regions.iteritems():
+        json_regions[initials] =  {"bases": region.bases, "events": region.events};
+
+    with open('data.json', 'wt') as out:
+        res = dumps(json_regions, sort_keys=True, indent=4, separators=(',', ': '))
         out.write(res)
 
 #######################################################################

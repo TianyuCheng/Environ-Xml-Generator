@@ -52,18 +52,25 @@ var vRatio = (height - offsetY)  / 180;
 
   // loading data
   $(function(){
-    $.getJSON("data.json", function(data) {
+    $.getJSON("keys.json", function(data) {
+
+      regions = {
+        "W":   { "bases": [], "events": []},
+        "NA":  { "bases": [], "events": []},
+        "SA":  { "bases": [], "events": []},
+        "EU":  { "bases": [], "events": []},
+        "AF":  { "bases": [], "events": []},
+        "CA":  { "bases": [], "events": []},
+        "EA":  { "bases": [], "events": []},
+      };
+
+      var select = $("#region-select");
+      for (var initials in regions)
+        $('<option value="' + initials+ '">' + initials+ '</option>').appendTo(select);
       
       // process each key and val
       $.each(data, function(key, val) {
-        if (key === "regions") {
-          regions = val;
-          // initialize regions in select
-          var select = $("#region-select");
-          for (var initials in regions)
-            $('<option value="' + initials+ '">' + initials+ '</option>').appendTo(select);
-        }
-        else if (key === "events") {
+        if (key === "events") {
           events = val;
           // initialize events in select
           var select = $("#event-select");
@@ -81,8 +88,6 @@ var vRatio = (height - offsetY)  / 180;
 
       // initialize the map with current data
       for (var regionKey in regions) {
-        // if (regionKey != "NA" || regionKey != "SA") continue;
-
         var region = regions[regionKey];
 
         // load all bases from this region
@@ -169,6 +174,7 @@ var vRatio = (height - offsetY)  / 180;
     this.innerRadius = innerRadius;
     this.outerRadius = outerRadius;
     this.circle = null;
+    this.alive = true;
   }
 
   Node.prototype.setPosition = function(x, y) {
@@ -188,6 +194,7 @@ var vRatio = (height - offsetY)  / 180;
   Node.prototype.destroy = function() {
     this.circle.remove();
     this.glow.remove();
+    this.alive = false;
   }
 
   Node.prototype.popup = function() {
@@ -360,14 +367,16 @@ var vRatio = (height - offsetY)  / 180;
         var base_output = "";
         for (var i in details.bases) {
           var base = details.bases[i];
-          base_output += base.title + "(0," + base.coordinate.x + "," + base.coordinate.y + ") ";
+          if (base.alive)
+            base_output += base.title + "(0," + base.coordinate.x + "," + base.coordinate.y + ") ";
         }
         $scope.output[region]['bases'] = base_output;
         // generating all events output strings
         var event_output = "";
         for (var i in details.events) {
           var event = details.events[i];
-          event_output += event.title + "(" + event.coordinate.x + "," + event.coordinate.y + ") ";
+          if (event.alive)
+            event_output += event.title + "(" + event.coordinate.x + "," + event.coordinate.y + ") ";
         }
         $scope.output[region]['events'] = event_output;
       }
