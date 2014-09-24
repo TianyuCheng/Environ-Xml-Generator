@@ -1,13 +1,26 @@
 xml-generator
 =============
 
-A xml generator pulling information from Google Spreadsheet for Project Environ
+A xml generator pulling information from Google Spreadsheet for Project Environ.
 
 Usage
 -----
-  python generator.py --username=<username> [--verbose]
+	python generator.py --username=<username> [--verbose]
+	
+	python generator.py --help
+  
 
-  python generator.py --help
+Server
+------
+	python server.py
+  
+	visit localhost:8000
+	
+	Mouse left click: add a base
+	
+	Mouse right click: add an event
+	
+	Click on a node: open up a pop up menu for details editing
 
 Files
 -----
