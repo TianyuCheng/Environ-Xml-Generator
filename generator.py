@@ -27,6 +27,7 @@ import traceback
 #                          global variables                           #
 #######################################################################
 keys = dict()
+adverbs = dict();
 regions = dict()
 bases = dict()
 upgrades = dict()
@@ -48,12 +49,13 @@ json_root = dict()
 #######################################################################
 verbose = False
 username = "skysource.tony@gmail.com"
+netfile = "EnvironNodesInfo-v2.gsheet"
 
 def parse_args():
     global verbose
     global username
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hvu:", ["help", "username=", "verbose"])
+        opts, args = getopt.getopt(sys.argv[1:],"hvu:f:", ["help", "username=", "verbose", "filename="])
     except getopt.GetoptError:
         print 'generator.py --username=<username> [--verbose]'
         sys.exit(2)
@@ -65,6 +67,8 @@ def parse_args():
             username = arg
         elif opt in ("-v", "--verbose"):
             verbose = True
+        elif opt in ("-f", "--filename"):
+            netfile = arg
 
 #######################################################################
 #                    spreadsheet data manipulation                    #
@@ -196,7 +200,6 @@ class Region(Info):
         self.id = _id
         self.initials = initials
         self.name = name
-        self.growth_rate = "0"
 
     def set_initial_values(self, pairs):
         self.initial_values = dict()
@@ -206,13 +209,7 @@ class Region(Info):
                 for pair in pairs:
                     key, value = pair.split(":")
                     # population as an exception
-                    if key == 'PO':
-                        amount, rate = value[1:-1].split(",")
-                        # self.initial_values[key] = { "amount": amount, "rate": rate}
-                        self.initial_values[key] = amount;
-                        self.growth_rate = rate
-                    else:
-                        self.initial_values[key] = value
+                    self.initial_values[key] = value
             except ValueError:
                 print "too many values to unpack in region:", self.name, value
             # print self.initial_values
@@ -253,7 +250,6 @@ class Region(Info):
         create_subselement(node, "name", self.name)
         create_subselement(node, "description", self.get("description"))
         create_subselement(node, "image", self.get("image"))
-        create_subselement(node, "growth_rate", self.growth_rate)
 
         # initial values
         initial_values_node = SubElement(node, "scores")
@@ -274,7 +270,7 @@ class Region(Info):
         bases_node = SubElement(node, "bases")
         for key in bases:
             attribs = self.bases[key]
-            base_node = create_subselement(bases_node, "base", "", {"state":attribs["state"], "x":attribs["x"], "y":attribs["y"], "key": key, "multiplier": attribs["multiplier"]})
+            base_node = create_subselement(bases_node, "base", "", {"state":attribs["state"], "x":attribs["x"], "y":attribs["y"], "key": key })
             for key, value in attribs["impacts"].iteritems():
                 impact_node = create_subselement(base_node, "impact", key, {"amount": str(value)})
 
@@ -304,47 +300,46 @@ class Base(Info):
         if impacts is None:
             impacts = ""
 
-        _impacts = dict()
-        pairs = compile('(\w+)\((.+?)\),?\s*').findall(impacts.strip())
+        _impacts = None
+        pairs = compile('\((.+?)\)\s*').findall(impacts.strip())
         for pair in pairs:
-            key = pair[0]
-            environment, economy = pair[1].split(",")
-            _impacts[key] = { "EC":economy, "EN": environment }
+            environment, economy = pair.split(",")
+            _impacts = { "EC":economy, "EN": environment }
+
 
         for initials, region in regions.iteritems():
-            try:
-                if initials is "W":
-                    continue
+            if initials is "W":
+                continue
+            # not every base will appear in every region
+            if self.key in region.bases:
                 base_attribs = region.bases[self.key]
-                if initials in _impacts:
-                    base_attribs['impacts'] = { "EC": _impacts[initials]["EC"], "EN": _impacts[initials]["EN"] }
-                else:
+                if _impacts is None:
                     base_attribs['impacts'] = { "EC": "0", "EN": "0" }
-            except KeyError:
-                print "[Error] cannot find base", self.key, " in the region", initials
-
-    def set_multipliers(self, multipliers):
-        if multipliers is None:
-            multipliers = ""
-
-        pairs = compile('(\w+)\((.+?)\),?\s*').findall(multipliers.strip())
-
-        multipliers = dict()
-        for pair in pairs:
-            key = pair[0]
-            multipliers[key] = pair[1]
-
-        for initials, region in regions.iteritems():
-            try:
-                if initials is "W":
-                    continue
-                base_attribs = region.bases[self.key]
-                if initials in multipliers:
-                    base_attribs['multiplier'] = multipliers[initials]
                 else:
-                    base_attribs['multiplier'] = "1"
-            except KeyError:
-                print "[Error] cannot find base", self.key, " in the region", initials
+                    base_attribs['impacts'] = _impacts
+
+    # def set_multipliers(self, multipliers):
+    #     if multipliers is None:
+    #         multipliers = ""
+    #
+    #     pairs = compile('(\w+)\((.+?)\),?\s*').findall(multipliers.strip())
+    #
+    #     multipliers = dict()
+    #     for pair in pairs:
+    #         key = pair[0]
+    #         multipliers[key] = pair[1]
+    #
+    #     for initials, region in regions.iteritems():
+    #         try:
+    #             if initials is "W":
+    #                 continue
+    #             base_attribs = region.bases[self.key]
+    #             if initials in multipliers:
+    #                 base_attribs['multiplier'] = multipliers[initials]
+    #             else:
+    #                 base_attribs['multiplier'] = "1"
+    #         except KeyError:
+    #             print "[Error] cannot find base", self.key, " in the region", initials
 
     def toXML(self):
         node = Element("base")
@@ -438,7 +433,7 @@ class Event(Info):
         create_subselement(node, "model", self.get("model"))
         create_subselement(node, "reference", self.get("reference"))
         create_subselement(node, "duration", self.get("duration"))
-        create_subselement(node, "scope", self.get("scope"))
+        # create_subselement(node, "scope", self.get("scope"))
 
         # tags
         tags_node = SubElement(node, "tags")
@@ -634,7 +629,7 @@ class Effect(object):
         # print pairs[0], "=>",  pairs[1]
         self.targets = pairs[0][:-2].split("&")
         self.key = pairs[1]
-        self.amount = pairs[2]
+        self.amount = convert_adverb(pairs[2])
         self.duration = duration
 
     def __save__(self):
@@ -673,6 +668,13 @@ def init_keys(reader, feed):
         if key is not None:
             keys[key] = get_spreadsheet_data(entry, "value")
 
+def init_adverbs(reader, feed):
+    entries = reader.read_worksheet(feed)
+    for entry in entries:
+        key = get_spreadsheet_data(entry, "key")
+        if key is not None:
+            adverbs[key] = get_spreadsheet_data(entry, "value")
+
 def init_tags(reader, feed):
     entries = reader.read_worksheet(feed)
     for entry in entries:
@@ -692,7 +694,7 @@ def init_regions(reader, feed):
             region.set("description", get_spreadsheet_data(entry, "description"))
             region.set("image", get_spreadsheet_data(entry, "image"))
             region.set_initial_values(get_spreadsheet_data(entry, "initialvalues"))
-            region.set_effects(get_spreadsheet_data(entry, "uniquecondition"), "0")
+            # region.set_effects(get_spreadsheet_data(entry, "uniquecondition"), "0")
             region.set_bases(get_spreadsheet_data(entry, "bases"))
             region.set_events(get_spreadsheet_data(entry, "events"))
             region.set_tags(get_spreadsheet_data(entry, "tags"))
@@ -709,7 +711,7 @@ def init_bases(reader, feed):
             base.set("model", get_spreadsheet_data(entry, "model"))
             base.set("reference", get_spreadsheet_data(entry, "reference"))
             base.set_initial_impacts(get_spreadsheet_data(entry, "initialimpacts"))
-            base.set_multipliers(get_spreadsheet_data(entry, "multipliers"))
+            # base.set_multipliers(get_spreadsheet_data(entry, "multipliers"))
             base.set_tags(get_spreadsheet_data(entry, "tags"))
             bases[key] = base
 
@@ -753,7 +755,7 @@ def init_events(reader, feed):
             event.set("model", get_spreadsheet_data(entry, "model"))
             event.set("reference", get_spreadsheet_data(entry, "reference"))
             event.set("duration", get_spreadsheet_data(entry, "duration"))
-            event.set("scope", get_spreadsheet_data(entry, "scope"))
+            # event.set("scope", get_spreadsheet_data(entry, "scope"))
             event.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             event.set_probabilities(get_spreadsheet_data(entry, "probability"))
             # event.set_effects(get_spreadsheet_data(entry, "effects"))
@@ -926,6 +928,16 @@ def is_number(s):
         return False
     return True
 
+def convert_adverb(arg):
+    if arg in adverbs:
+        return adverbs[arg]
+
+    if is_number(arg):
+        return arg
+
+    prompt(False, "The input is incorrect", arg)
+    return None
+
 def is_int(s):
     try:
         int(s) # for int
@@ -1034,8 +1046,8 @@ def check_region(region):
             prompt(False, "Base %s's location x is not a number" % key, "x: " + attribs['x'])
         if not is_number(attribs['y']):
             prompt(False, "Base %s's location y is not a number" % key, "y: " + attribs['y'])
-        if not is_number(attribs['multiplier']):
-            prompt(False, "Base %s's location multiplier is not a number" % key, "multiplier: " + attribs['multiplier'])
+        # if not is_number(attribs['multiplier']):
+        #     prompt(False, "Base %s's location multiplier is not a number" % key, "multiplier: " + attribs['multiplier'])
         for score, amount, in attribs["impacts"].iteritems():
             if not is_number(amount):
                 prompt(False, "Base %s's impact %s is not a number" % (key, score), score + ": " + amount)
@@ -1139,9 +1151,9 @@ def check_event(event):
     if not is_number(event.get("duration")):
         prompt(False, "Event %s's duration is not a number" % event.key, "duration: " + event.get("duration"))
 
-    scope = event.get("scope")
-    if scope is not "R" and scope is not "G":
-        prompt(False, "Event %s's scope should be either G or R" % event.key, "scope: " + event.get("scope"))
+    # scope = event.get("scope")
+    # if scope is not "R" and scope is not "G":
+    #     prompt(False, "Event %s's scope should be either G or R" % event.key, "scope: " + event.get("scope"))
 
     check_prereqs(event)
 
@@ -1171,7 +1183,7 @@ if __name__ == '__main__':
     parse_args()
 
     # set up GoogleSpreadSheetReader
-    reader = SpreadsheetReader(username, "EnvironNodesInfo (Matt and Peter).gsheet")
+    reader = SpreadsheetReader(username, "EnvironNodesInfo-v2.gsheet")
     feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
     
     if verbose:
@@ -1181,6 +1193,7 @@ if __name__ == '__main__':
 
     init_keys(reader, feeds['Keys'])
     init_tags(reader, feeds['Tags'])
+    init_adverbs(reader, feeds['Adverbs'])
     init_regions(reader, feeds['Regions'])
     init_bases(reader, feeds['Bases'])
     init_upgrades(reader, feeds['Upgrades'])
