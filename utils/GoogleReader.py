@@ -51,7 +51,7 @@ class SpreadsheetReader(object):
             gd_client.password = self.password
             gd_client.source = 'xml-generator'
             gd_client.ProgrammaticLogin()
-        except BadAuthentication, e:
+        except Exception, e:
             raise   #authentication failure
 
         # authentication success

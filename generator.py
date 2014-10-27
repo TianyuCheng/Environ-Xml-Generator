@@ -27,11 +27,12 @@ import traceback
 #                          global variables                           #
 #######################################################################
 keys = dict()
-adverbs = dict();
+adverbs = dict()
 regions = dict()
 bases = dict()
 upgrades = dict()
 events = dict()
+personas = dict()
 tags = dict()
 prereqs = dict()
 probabilities = dict()
@@ -48,8 +49,8 @@ json_root = dict()
 #                            Configuration                            #
 #######################################################################
 verbose = False
-username = "skysource.tony@gmail.com"
-netfile = "EnvironNodesInfo-v2.gsheet"
+username = "tianyu.cheng@utexas.edu"
+netfile = "EnvironNodesInfo-v4"
 
 def parse_args():
     global verbose
@@ -173,11 +174,6 @@ class Info(object):
             if group is not "" and group is not None:
                 fx = Effect(group, duration)
                 self.effects.append(fx)
-            # print fx.id, ">>>", group
-        # print '====>'
-
-        # for effect in self.effects:
-        #     print effect
 
     def set_probabilities(self, probabilities):
 
@@ -422,6 +418,25 @@ class Event(Info):
         super(Event, self).__init__()
         self.title = title
         self.key = key 
+        self.action_costs = None
+        self.action_effects = []
+
+    def set_action_costs(self, costs):
+        self.costs = None
+        if costs is None:
+            return
+
+        self.action_costs = Cost(costs)
+
+    def set_action_effects(self, effects, duration):
+        if effects is None or effects is "":
+            return
+        groups = compile("\s*").split(effects.strip())
+        for group in groups:
+            group = group.strip()
+            if group is not "" and group is not None:
+                fx = Effect(group, duration)
+                self.action_effects.append(fx)
 
     def toXML(self):
         node = Element("event")
@@ -456,6 +471,19 @@ class Event(Info):
         for effect in self.effects:
             create_subselement(effects_node, "effect", effect.id)
 
+        # event action system
+        create_subselement(node, "actionable", self.get("actionable"))
+        create_subselement(node, "action_description", self.get("action_description"))
+
+        # create costs and effects
+        action_costs_node = SubElement(node, "action_costs")
+        if self.action_costs is not None:
+            create_subselement(action_costs_node, "action_cost", self.action_costs.id)
+
+        action_effects_node = SubElement(node, "action_effects")
+        for effect in self.action_effects:
+            create_subselement(action_effects_node, "action_effect", effect.id)
+
         return node
 
 class Tag(object):
@@ -469,6 +497,26 @@ class Tag(object):
         node = Element("tag")
         key_node = create_subselement(node, "key", self.key)
         title_node = create_subselement(node, "title", self.title)
+        return node
+
+class Persona(Info):
+
+    def __init__(self, id, name):
+        super(Persona, self).__init__()
+        self._id = id
+        self.name = name
+
+    def toXML(self):
+        node = Element("persona")
+        create_subselement(node, "id", self._id)
+        create_subselement(node, "name", self.name)
+        create_subselement(node, "description", self.get("description"))
+
+        # special effects
+        effects_node = SubElement(node, "effects")
+        for effect in self.effects:
+            create_subselement(effects_node, "effect", effect.id)
+
         return node
 
 class Prerequisite(Info):
@@ -758,11 +806,25 @@ def init_events(reader, feed):
             # event.set("scope", get_spreadsheet_data(entry, "scope"))
             event.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             event.set_probabilities(get_spreadsheet_data(entry, "probability"))
-            # event.set_effects(get_spreadsheet_data(entry, "effects"))
             event.set_effects(get_spreadsheet_data(entry, "immediateeffects"), "0")
             event.set_effects(get_spreadsheet_data(entry, "effectsovertime"), get_spreadsheet_data(entry, "effectsduration"))
             event.set_tags(get_spreadsheet_data(entry, "tags"))
+            # event actioning system
+            event.set("actionable", get_spreadsheet_data(entry, "actionable"))
+            event.set("action_description", get_spreadsheet_data(entry, "actiondescription"))
+            event.set_action_costs(get_spreadsheet_data(entry, "actioncosts"))
+            event.set_action_effects(get_spreadsheet_data(entry, "actioneffects"), "0")
             events[key] = event
+
+def init_personas(reader, feed):
+    entries = reader.read_worksheet(feed)
+    for entry in entries:
+        id = get_spreadsheet_data(entry, "id")
+        name = get_spreadsheet_data(entry, "name")
+        persona = Persona(id, name)
+        persona.set("description", get_spreadsheet_data(entry, "description"))
+        persona.set_effects(get_spreadsheet_data(entry, "effect"), "0")
+        personas[id] = persona
 
 #######################################################################
 #                              Generator                              #
@@ -833,6 +895,12 @@ def generate_xml():
         root_upgrades.append(value.toXML())
     with open('xmls/upgrades.xml', 'w') as f:
         f.write(prettify(root_upgrades).encode("utf-8"))
+
+    root_personas = Element("personas")
+    for key, value in personas.iteritems():
+        root_personas.append(value.toXML())
+    with open('xmls/personas.xml', 'w') as f:
+        f.write(prettify(root_personas).encode("utf-8"))
 
 def generate_json():
     # generate json for html tool
@@ -1183,7 +1251,7 @@ if __name__ == '__main__':
     parse_args()
 
     # set up GoogleSpreadSheetReader
-    reader = SpreadsheetReader(username, "EnvironNodesInfo-v2.gsheet")
+    reader = SpreadsheetReader(username, netfile)
     feeds = reader.get_worsksheet_feeds(lambda s : s.split(' ')[0])
     
     if verbose:
@@ -1198,6 +1266,7 @@ if __name__ == '__main__':
     init_bases(reader, feeds['Bases'])
     init_upgrades(reader, feeds['Upgrades'])
     init_events(reader, feeds['Events'])
+    init_personas(reader, feeds['Personas'])
 
     semantic_check()
     generate_xml()
