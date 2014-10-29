@@ -189,6 +189,17 @@ class Info(object):
         # for probability in self.probabilities:
         #     print probability
 
+    def set_coordinates(self, coordinates):
+        if coordinates == None:
+            coordinates = "(0,0)"
+        pairs = compile('\((.+?)\)').findall(coordinates.strip())
+        if len(pairs) == 0:
+            raise
+        pair = pairs[0].split(',')
+        if len(pair) != 2:
+            raise
+        self.coordinates = {"x": pair[0], "y": pair[1]}
+
 class Region(Info):
 
     def __init__(self, _id, initials, name):
@@ -224,20 +235,20 @@ class Region(Info):
                 print "[Error] too many values to unpack in region:", self.name, value
             # print self.bases
 
-    def set_events(self, events):
-        self.events = dict()
-        if events is not None:
-            pairs = compile('(\w+):\((.+?)\),?\s*').findall(events.strip())
-            attrs = ["x", "y"]
-            try:
-                for pair in pairs:
-                    key = pair[0]
-                    attributes = dict(zip(attrs, pair[1].split(",")))
-                    self.events[key] = attributes
-            except ValueError:
-                print "[Error] too many values to unpack in region:", self.name, value
-                raise
-            # print self.events
+    # def set_events(self, events):
+    #     self.events = dict()
+    #     if events is not None:
+    #         pairs = compile('(\w+):\((.+?)\),?\s*').findall(events.strip())
+    #         attrs = ["x", "y"]
+    #         try:
+    #             for pair in pairs:
+    #                 key = pair[0]
+    #                 attributes = dict(zip(attrs, pair[1].split(",")))
+    #                 self.events[key] = attributes
+    #         except ValueError:
+    #             print "[Error] too many values to unpack in region:", self.name, value
+    #             raise
+    #         # print self.events
 
     def toXML(self):
         node = Element("region")
@@ -270,12 +281,12 @@ class Region(Info):
             for key, value in attribs["impacts"].iteritems():
                 impact_node = create_subselement(base_node, "impact", key, {"amount": str(value)})
 
-        # events
-        events = sorted(self.events, key = lambda key : int(key[1:]))
-        events_node = SubElement(node, "events")
-        for key in events:
-            attribs = self.events[key]
-            create_subselement(events_node, "event", key, {"x":attribs["x"], "y":attribs["y"]})
+        # # events
+        # events = sorted(self.events, key = lambda key : int(key[1:]))
+        # events_node = SubElement(node, "events")
+        # for key in events:
+        #     attribs = self.events[key]
+        #     create_subselement(events_node, "event", key, {"x":attribs["x"], "y":attribs["y"]})
         
         # tags
         tags_node = SubElement(node, "tags")
@@ -384,8 +395,10 @@ class Upgrade(Info):
         create_subselement(node, "model", self.get("model"))
         create_subselement(node, "icon", self.get("icon"))
         create_subselement(node, "reference", self.get("reference"))
+        create_subselement(node, "base_view", self.get("base_view"))
         create_subselement(node, "build_time", self.get("build_time"))
         create_subselement(node, "effects_duration", self.get("effects_duration"))
+        create_subselement(node, "coordinate", "", {"x":self.coordinates["x"], "y":self.coordinates["y"]})
 
         create_subselement(node, "levels", self.get("levels"))
         multipliers_node = SubElement(node, "multipliers")
@@ -449,6 +462,7 @@ class Event(Info):
         create_subselement(node, "reference", self.get("reference"))
         create_subselement(node, "duration", self.get("duration"))
         # create_subselement(node, "scope", self.get("scope"))
+        create_subselement(node, "coordinate", "", {"x":self.coordinates["x"], "y":self.coordinates["y"]})
 
         # tags
         tags_node = SubElement(node, "tags")
@@ -744,7 +758,7 @@ def init_regions(reader, feed):
             region.set_initial_values(get_spreadsheet_data(entry, "initialvalues"))
             # region.set_effects(get_spreadsheet_data(entry, "uniquecondition"), "0")
             region.set_bases(get_spreadsheet_data(entry, "bases"))
-            region.set_events(get_spreadsheet_data(entry, "events"))
+            # region.set_events(get_spreadsheet_data(entry, "events"))
             region.set_tags(get_spreadsheet_data(entry, "tags"))
             regions[initials] = region
 
@@ -777,11 +791,13 @@ def init_upgrades(reader, feed):
             upgrade.set("model", get_spreadsheet_data(entry, "model"))
             upgrade.set("icon", get_spreadsheet_data(entry, "icon"))
             upgrade.set("reference", get_spreadsheet_data(entry, "reference"))
+            upgrade.set("base_view", get_spreadsheet_data(entry, "baseview"))
             upgrade.set("build_time", get_spreadsheet_data(entry, "buildtime"))
             upgrade.set("effects_duration", get_spreadsheet_data(entry, "effectsduration"))
             upgrade.set("levels", get_spreadsheet_data(entry, "levels"))
             upgrade.set("cost_multiplier", get_spreadsheet_data(entry, "costmultiplier"))
             upgrade.set("effect_multiplier", get_spreadsheet_data(entry, "effectmultiplier"))
+            upgrade.set_coordinates(get_spreadsheet_data(entry, "coordinates"))
             upgrade.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             upgrade.set_costs(get_spreadsheet_data(entry, "costs"))
             upgrade.set_effects(get_spreadsheet_data(entry, "immediateeffects"), "0")
@@ -804,6 +820,7 @@ def init_events(reader, feed):
             event.set("reference", get_spreadsheet_data(entry, "reference"))
             event.set("duration", get_spreadsheet_data(entry, "duration"))
             # event.set("scope", get_spreadsheet_data(entry, "scope"))
+            event.set_coordinates(get_spreadsheet_data(entry, "coordinates"))
             event.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
             event.set_probabilities(get_spreadsheet_data(entry, "probability"))
             event.set_effects(get_spreadsheet_data(entry, "immediateeffects"), "0")
@@ -919,10 +936,16 @@ def generate_json():
         res = dumps(json_root, sort_keys=True, indent=4, separators=(',', ': '))
         out.write(res)
 
-    # generate each region's children events and bases
+    # # generate each region's children events and bases
     json_regions = dict()
     for initials, region in regions.iteritems():
-        json_regions[initials] =  {"bases": region.bases, "events": region.events};
+    #     json_regions[initials] =  {"bases": region.bases, "events": region.events};
+        json_regions[initials] =  {"bases": region.bases, "events": dict()};
+
+    json_events = dict()
+    for key, value in events.iteritems():
+        json_events[key] = value.coordinates
+    json_regions["W"]["events"] = json_events
 
     with open('data.json', 'wt') as out:
         res = dumps(json_regions, sort_keys=True, indent=4, separators=(',', ': '))
@@ -989,12 +1012,14 @@ def prompt(flag, message, error_prompt):
         stderr.write(error_prompt)
         stderr.write("\n")
 
-def is_number(s):
+def is_number(s, callback = lambda x: True):
+    num = None
     try:
-        float(s.strip("%")) # for int, long and float
+        num = float(s.strip("%")) # for int, long and float
     except ValueError:
         return False
-    return True
+
+    return callback(num)    # provide additional check
 
 def convert_adverb(arg):
     if arg in adverbs:
@@ -1120,14 +1145,14 @@ def check_region(region):
             if not is_number(amount):
                 prompt(False, "Base %s's impact %s is not a number" % (key, score), score + ": " + amount)
 
-    # check events
-    check_events = check_keywords(region.events, events)
-    check_events("Checking keywords in %s events" % region.initials)
-    for key, attribs in region.events.iteritems():
-        if not is_number(attribs['x']):
-            prompt(False, "Event %s's location x is not a number" % key, "x: " + attribs['x'])
-        if not is_number(attribs['y']):
-            prompt(False, "Event %s's location y is not a number" % key, "y: " + attribs['y'])
+    # # check events
+    # check_events = check_keywords(region.events, events)
+    # check_events("Checking keywords in %s events" % region.initials)
+    # for key, attribs in region.events.iteritems():
+    #     if not is_number(attribs['x']):
+    #         prompt(False, "Event %s's location x is not a number" % key, "x: " + attribs['x'])
+    #     if not is_number(attribs['y']):
+    #         prompt(False, "Event %s's location y is not a number" % key, "y: " + attribs['y'])
     
     # tags
     check_tags = check_keywords(region.tags, tags)
