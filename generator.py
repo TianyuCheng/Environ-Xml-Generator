@@ -463,6 +463,7 @@ class Event(Info):
         create_subselement(node, "duration", self.get("duration"))
         # create_subselement(node, "scope", self.get("scope"))
         create_subselement(node, "coordinate", "", {"x":self.coordinates["x"], "y":self.coordinates["y"]})
+        create_subselement(node, "region", self.get("region"))
 
         # tags
         tags_node = SubElement(node, "tags")
@@ -829,6 +830,7 @@ def init_events(reader, feed):
             # event actioning system
             event.set("actionable", get_spreadsheet_data(entry, "actionable"))
             event.set("action_description", get_spreadsheet_data(entry, "actiondescription"))
+            event.set("region", get_spreadsheet_data(entry, "region"))
             event.set_action_costs(get_spreadsheet_data(entry, "actioncosts"))
             event.set_action_effects(get_spreadsheet_data(entry, "actioneffects"), "0")
             events[key] = event
