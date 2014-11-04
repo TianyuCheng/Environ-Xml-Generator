@@ -50,7 +50,7 @@ json_root = dict()
 #######################################################################
 verbose = False
 username = "tianyu.cheng@utexas.edu"
-netfile = "EnvironNodesInfo-v4"
+netfile = "EnvironNodesInfo-v5"
 
 def parse_args():
     global verbose
