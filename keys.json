@@ -1,12 +1,9 @@
 {
     "bases": {
-        "B1": "Policy Center",
+        "B1": "Policy and Research",
         "B10": "Ecosystem",
-        "B11": "Cities",
-        "B12": "Manufacturing",
-        "B13": "Agriculture and Mining",
-        "B14": "Transportation",
-        "B2": "Research Center",
+        "B11": "Cities & Transportation",
+        "B12": "Agriculture & Manufacturing",
         "B3": "Coal",
         "B4": "Oil and Gas",
         "B5": "Solar Power",

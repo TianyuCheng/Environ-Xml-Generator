@@ -547,17 +547,20 @@ class Prerequisite(Info):
             if fmt == '!':
                 self.relation = -1
                 self.key = prereqs[index + 1:]
-                self.type = 'node'
+                self.amount = 0
             elif fmt == '>':
                 self.relation = 1
                 self.key = prereqs[:index]
                 self.amount = prereqs[index + 1:]
-                self.type = 'score'
             elif fmt == '<':
                 self.relation = -1
                 self.key = prereqs[:index]
                 self.amount = prereqs[index + 1:]
+
+            if self.key in keys:
                 self.type = 'score'
+            else:
+                self.type = 'node'
             self.__save__();
             return
 
@@ -577,19 +580,13 @@ class Prerequisite(Info):
             prereqs[key] = self
 
     def __str__(self):
-        if self.type == 'node':
-            return self.type + '|' + self.key + '|' + str(self.relation)
-        else:
-            return self.type + '|' + self.key + '|' + str(self.relation) + '|' + str(self.amount)
+        return self.type + '|' + self.key + '|' + str(self.relation) + '|' + str(self.amount)
 
     def toXML(self):
         node = Element("prereq")
         key_node = create_subselement(node, "key", self.id)
         factors_node = create_subselement(node, "factors", "")
-        if self.type == "node":
-            target_node = create_subselement(factors_node, "factor", self.key, {"relation": str(self.relation), "amount": "0", "type": self.type})
-        else:
-            target_node = create_subselement(factors_node, "factor", self.key, {"relation": str(self.relation), "amount": str(self.amount), "type": self.type})
+        target_node = create_subselement(factors_node, "factor", self.key, {"relation": str(self.relation), "amount": str(self.amount), "type": self.type})
         return node
 
 class Probability(Info):
