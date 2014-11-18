@@ -295,8 +295,9 @@ var vRatio = (height - offsetY)  / 180;
 
     // mouse moving action
     $scope.showCoordinate = function($event) {
-      $scope.coordinate.x = $event.offsetX;
-      $scope.coordinate.y = $event.offsetY;
+      var coord = map2real($event.offsetX, $event.offsetY);
+      $scope.coordinate.x = coord['x'];
+      $scope.coordinate.y = coord['y'];
     }
 
     // mouse click action

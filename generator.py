@@ -922,6 +922,7 @@ def generate_json():
     # generate json for html tool
     json_root["events"] = dict()
     json_root["bases"] = dict()
+    json_root["upgrades"] = dict()
 
     json_bases = json_root["bases"]
     for key, base in bases.iteritems():
@@ -930,6 +931,10 @@ def generate_json():
     json_events = json_root["events"]
     for key, event in events.iteritems():
         json_events[key] = event.title
+
+    json_upgrades = json_root["upgrades"]
+    for key, upgrade in upgrades.iteritems():
+        json_upgrades[key] = upgrade.title
 
     with open('keys.json', 'wt') as out:
         res = dumps(json_root, sort_keys=True, indent=4, separators=(',', ': '))
@@ -945,6 +950,10 @@ def generate_json():
     for key, value in events.iteritems():
         json_events[key] = value.coordinates
     json_regions["W"]["events"] = json_events
+
+    json_upgrades = dict()
+    for key, value in upgrades.iteritems():
+        json_upgrades[key] = value.coordinates
 
     with open('data.json', 'wt') as out:
         res = dumps(json_regions, sort_keys=True, indent=4, separators=(',', ': '))
