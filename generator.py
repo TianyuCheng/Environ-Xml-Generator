@@ -526,6 +526,7 @@ class Persona(Info):
         create_subselement(node, "id", self._id)
         create_subselement(node, "name", self.name)
         create_subselement(node, "description", self.get("description"))
+        create_subselement(node, "short_description", self.get("short_description"))
 
         # special effects
         effects_node = SubElement(node, "effects")
@@ -839,6 +840,7 @@ def init_personas(reader, feed):
         name = get_spreadsheet_data(entry, "name")
         persona = Persona(id, name)
         persona.set("description", get_spreadsheet_data(entry, "description"))
+        persona.set("short_description", get_spreadsheet_data(entry, "shortdescription"))
         persona.set_effects(get_spreadsheet_data(entry, "effect"), "0")
         personas[id] = persona
 
