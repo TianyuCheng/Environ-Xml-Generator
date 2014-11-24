@@ -50,7 +50,7 @@ json_root = dict()
 #######################################################################
 verbose = False
 username = "tianyu.cheng@utexas.edu"
-netfile = "EnvironNodesInfo-v5"
+netfile = "EnvironNodesInfo-v6"
 
 def parse_args():
     global verbose
@@ -175,7 +175,7 @@ class Info(object):
                 fx = Effect(group, duration)
                 self.effects.append(fx)
 
-    def set_probabilities(self, probabilities):
+    def set_probabilities(self, base, probabilities):
 
         self.probabilities = []
 
@@ -184,7 +184,7 @@ class Info(object):
 
         groups = compile("\s*").split(probabilities.strip())
         for group in groups:
-            self.probabilities.append(Probability(group))
+            self.probabilities.append(Probability(base, group))
 
         # for probability in self.probabilities:
         #     print probability
@@ -592,23 +592,36 @@ class Prerequisite(Info):
 
 class Probability(Info):
 
-    def __init__(self, probability):
+    def __init__(self, base, probability):
         super(Probability, self).__init__()
         if probability is None:
             return
 
+        if not is_number(base):
+            prompt(False, "Checking validity of base probability", "The base value %s of probability %s is not a number" % (base, probability))
+
+        self.base_value = str(float(base) / 100)
+
         self.items = dict()
         items = probability.split('&')
-        for item in items:
+        for item in reversed(items):
             if item[-1:] == '-':
-                key = item[:-1]
-                relation = -1
+                index = 0
+                while item[index - 1] == '-':
+                    index -= 1
+                key = item[:index]
+                relation = index
             elif item[-1:] == '+':
-                key = item[:-1]
-                relation = 1
+                index = 0
+                while item[index - 1] == '+':
+                    index -= 1
+                key = item[:index]
+                relation = -index
             else:
                 key = item
-                relation = 1
+                if relation == 0:
+                    relation = 1
+                # else use the relation from last time
 
             if key in keys or key == 'PC' or key == '$':
                 self.items[key] = {"relation": relation, "type": "score"}
@@ -631,6 +644,7 @@ class Probability(Info):
     def toXML(self):
         node = Element("probability")
         key_node = create_subselement(node, "key", self.id)
+        base_node = create_subselement(node, "base_value", self.base_value)
         factors_node = create_subselement(node, "factors", "")
         for key, value in self.items.iteritems():
             factor_node = create_subselement(factors_node, "factor", key, {"type": value["type"], "relation": str(value["relation"]), "amount": "0"})
@@ -821,7 +835,7 @@ def init_events(reader, feed):
             # event.set("scope", get_spreadsheet_data(entry, "scope"))
             event.set_coordinates(get_spreadsheet_data(entry, "coordinates"))
             event.set_prereqs(get_spreadsheet_data(entry, "prereqs"))
-            event.set_probabilities(get_spreadsheet_data(entry, "probability"))
+            event.set_probabilities(get_spreadsheet_data(entry, "baseprobability"), get_spreadsheet_data(entry, "probability"))
             event.set_effects(get_spreadsheet_data(entry, "immediateeffects"), "0")
             event.set_effects(get_spreadsheet_data(entry, "effectsovertime"), get_spreadsheet_data(entry, "effectsduration"))
             event.set_tags(get_spreadsheet_data(entry, "tags"))
